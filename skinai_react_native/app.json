@@ -1,0 +1,17 @@
+{
+  "expo": {
+    "name": "SkinAI",
+    "slug": "skinai",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0F1115"
+      }
+    }
+  }
+}
