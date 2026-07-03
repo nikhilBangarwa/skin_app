@@ -6,6 +6,7 @@ import 'firebase_options.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/onboarding/onboarding_screen.dart';
 import 'screens/home/home_screen.dart';
+import 'screens/splash/splash_screen.dart';
 import 'theme/colors.dart';
 
 void main() async {
@@ -55,7 +56,7 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const AuthRouter(),
+      home: const SplashScreen(),
     );
   }
 }

@@ -115,25 +115,27 @@ class _SignupScreenState extends State<SignupScreen> {
                   child: Column(
                     children: [
                       Container(
-                        height: 64,
-                        width: 64,
+                        height: 76,
+                        width: 76,
                         decoration: BoxDecoration(
-                          color: AppColors.card,
                           shape: BoxShape.circle,
-                          border: AppColors.glassBorder,
+                          border: Border.all(
+                            color: const Color(0xFFE89A8D).withValues(alpha: 0.3),
+                            width: 1.5,
+                          ),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.primary.withValues(alpha: 0.12),
-                              blurRadius: 16,
-                              spreadRadius: 1,
+                              color: const Color(0xFFE89A8D).withValues(alpha: 0.18),
+                              blurRadius: 20,
+                              spreadRadius: 2,
                             ),
                           ],
                         ),
-                        child: const Center(
-                          child: Icon(
-                            Icons.blur_on,
-                            size: 32,
-                            color: AppColors.primary,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(38),
+                          child: Image.asset(
+                            'assets/images/logo.png',
+                            fit: BoxFit.cover,
                           ),
                         ),
                       ),

@@ -391,7 +391,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     final ImageProvider faceImage = hasLocalFile
         ? FileImage(File(widget.imagePath))
         : const NetworkImage(
-            'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=400&q=80',
+            'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=400&q=80',
           ) as ImageProvider;
 
     return Scaffold(

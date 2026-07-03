@@ -308,7 +308,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
                                   : (_isCameraInitialized && _cameraController != null
                                       ? CameraPreview(_cameraController!)
                                       : Image.network(
-                                          'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&w=400&q=80',
+                                          'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=400&q=80',
                                           fit: BoxFit.cover,
                                         ))),
                         ),

@@ -166,7 +166,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
       _preferencesSaved = false;
       _calibrationDone = false;
     });
-    
+
     HapticFeedback.heavyImpact();
     _celebrationController.forward();
 
@@ -215,7 +215,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
       if (mounted) {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => const HomeScreen()),
-          (route) => false,
+              (route) => false,
         );
       }
     } catch (e) {
@@ -249,14 +249,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
               Column(
                 children: [
                   const SizedBox(height: 20),
-                  
+
                   // Top Branding & Logo
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24.0),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Text(
+                      children: [
+                        Image.asset(
+                          'assets/images/logo.png',
+                          height: 28,
+                          width: 28,
+                        ),
+                        const SizedBox(width: 8),
+                        const Text(
                           'Skin',
                           style: TextStyle(
                             fontSize: 22,
@@ -265,7 +271,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                             letterSpacing: -0.5,
                           ),
                         ),
-                        Text(
+                        const Text(
                           'AI',
                           style: TextStyle(
                             fontSize: 22,
@@ -282,7 +288,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                   // Progress Bar & Labels
                   _buildProgressIndicator(),
                   const SizedBox(height: 16),
-                  
+
                   // Step Pages
                   Expanded(
                     child: PageView(
@@ -376,13 +382,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 20),
-              
+
               // Animated Profile Avatar
               const Center(
                 child: _AnimatedProfileAvatar(),
               ),
               const SizedBox(height: 28),
-              
+
               const Text(
                 'Welcome to SkinAI',
                 textAlign: TextAlign.center,
@@ -416,12 +422,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                   ),
                   boxShadow: _isNameFocused
                       ? [
-                          BoxShadow(
-                            color: const Color(0xFFE89A8D).withValues(alpha: 0.15),
-                            blurRadius: 10,
-                            spreadRadius: 2,
-                          )
-                        ]
+                    BoxShadow(
+                      color: const Color(0xFFE89A8D).withValues(alpha: 0.15),
+                      blurRadius: 10,
+                      spreadRadius: 2,
+                    )
+                  ]
                       : AppColors.softShadow,
                 ),
                 child: TextFormField(
@@ -465,12 +471,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                   ),
                   boxShadow: _isAgeFocused
                       ? [
-                          BoxShadow(
-                            color: const Color(0xFFE89A8D).withValues(alpha: 0.15),
-                            blurRadius: 10,
-                            spreadRadius: 2,
-                          )
-                        ]
+                    BoxShadow(
+                      color: const Color(0xFFE89A8D).withValues(alpha: 0.15),
+                      blurRadius: 10,
+                      spreadRadius: 2,
+                    )
+                  ]
                       : AppColors.softShadow,
                 ),
                 child: TextFormField(
@@ -539,8 +545,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                         decoration: BoxDecoration(
                           gradient: isSelected
                               ? const LinearGradient(
-                                  colors: [Color(0xFFE89A8D), Color(0xFFD97B6C)],
-                                )
+                            colors: [Color(0xFFE89A8D), Color(0xFFD97B6C)],
+                          )
                               : null,
                           color: isSelected ? null : AppColors.card.withValues(alpha: 0.5),
                           borderRadius: BorderRadius.circular(20),
@@ -549,12 +555,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                               : Border.all(color: Colors.white.withValues(alpha: 0.08), width: 1.0),
                           boxShadow: isSelected
                               ? [
-                                  BoxShadow(
-                                    color: const Color(0xFFE89A8D).withValues(alpha: 0.25),
-                                    blurRadius: 10,
-                                    spreadRadius: 1,
-                                  )
-                                ]
+                            BoxShadow(
+                              color: const Color(0xFFE89A8D).withValues(alpha: 0.25),
+                              blurRadius: 10,
+                              spreadRadius: 1,
+                            )
+                          ]
                               : [],
                         ),
                         child: Text(
@@ -639,12 +645,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                           ),
                           boxShadow: isSelected
                               ? [
-                                  BoxShadow(
-                                    color: const Color(0xFFE89A8D).withValues(alpha: 0.15),
-                                    blurRadius: 10,
-                                    spreadRadius: 1,
-                                  )
-                                ]
+                            BoxShadow(
+                              color: const Color(0xFFE89A8D).withValues(alpha: 0.15),
+                              blurRadius: 10,
+                              spreadRadius: 1,
+                            )
+                          ]
                               : AppColors.softShadow,
                         ),
                         child: Row(
@@ -774,11 +780,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                         ),
                         boxShadow: isSelected
                             ? [
-                                BoxShadow(
-                                  color: const Color(0xFFE89A8D).withValues(alpha: 0.15),
-                                  blurRadius: 8,
-                                )
-                              ]
+                          BoxShadow(
+                            color: const Color(0xFFE89A8D).withValues(alpha: 0.15),
+                            blurRadius: 8,
+                          )
+                        ]
                             : [],
                       ),
                       child: Row(
@@ -1018,7 +1024,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
               ),
             ),
           if (_currentPage > 0) const SizedBox(width: 16),
-          
+
           // Next / Finish Button with Gradient
           Expanded(
             flex: 2,
@@ -1088,7 +1094,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Spacer(),
-                
+
                 // Pulsing Dash circle loader
                 Container(
                   height: 120,
@@ -1200,12 +1206,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                       child: ElevatedButton(
                         onPressed: _calibrationDone
                             ? () {
-                                HapticFeedback.mediumImpact();
-                                Navigator.of(context).pushAndRemoveUntil(
-                                  MaterialPageRoute(builder: (_) => const HomeScreen()),
-                                  (route) => false,
-                                );
-                              }
+                          HapticFeedback.mediumImpact();
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(builder: (_) => const HomeScreen()),
+                                (route) => false,
+                          );
+                        }
                             : null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.transparent,
@@ -1264,7 +1270,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
   }
 }
 
-// Sub-widgets supporting the premium onboarding screen redesign
 class _AnimatedProfileAvatar extends StatefulWidget {
   const _AnimatedProfileAvatar();
 
@@ -1304,14 +1309,10 @@ class _AnimatedProfileAvatarState extends State<_AnimatedProfileAvatar> with Sin
           child: Container(
             height: 100,
             width: 100,
+            padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: const RadialGradient(
-                colors: [
-                  Color(0xFFFFBCAE), // Light rose gold
-                  Color(0xFFE89A8D), // Primary accent rose gold
-                ],
-              ),
+              color: AppColors.card,
               boxShadow: [
                 BoxShadow(
                   color: const Color(0xFFE89A8D).withValues(alpha: 0.45),
@@ -1320,10 +1321,11 @@ class _AnimatedProfileAvatarState extends State<_AnimatedProfileAvatar> with Sin
                 ),
               ],
             ),
-            child: const Icon(
-              Icons.face_retouching_natural,
-              size: 52,
-              color: Colors.white,
+            child: ClipOval(
+              child: Image.asset(
+                'assets/images/logo.png',
+                fit: BoxFit.cover,
+              ),
             ),
           ),
         );

@@ -421,23 +421,29 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Stylized Premium G representation
-                        Container(
+                        Image.network(
+                          'https://developers.google.com/static/identity/images/g-logo.png',
                           width: 20,
                           height: 20,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(color: AppColors.primary, width: 1.5),
-                          ),
-                          child: const Text(
-                            'G',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w900,
-                              color: AppColors.primary,
-                            ),
-                          ),
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              width: 20,
+                              height: 20,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(color: AppColors.primary, width: 1.5),
+                              ),
+                              child: const Text(
+                                'G',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w900,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            );
+                          },
                         ),
                         const SizedBox(width: 12),
                         const Text(
