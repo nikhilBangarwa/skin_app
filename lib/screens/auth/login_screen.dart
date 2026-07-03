@@ -164,25 +164,27 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       // Premium circular logo with glowing blur shadow
                       Container(
-                        height: 76,
-                        width: 76,
+                        height: 90,
+                        width: 90,
                         decoration: BoxDecoration(
-                          color: AppColors.card,
                           shape: BoxShape.circle,
-                          border: AppColors.glassBorder,
+                          border: Border.all(
+                            color: const Color(0xFFE89A8D).withValues(alpha: 0.3),
+                            width: 1.5,
+                          ),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.primary.withValues(alpha: 0.15),
-                              blurRadius: 20,
+                              color: const Color(0xFFE89A8D).withValues(alpha: 0.2),
+                              blurRadius: 25,
                               spreadRadius: 2,
                             ),
                           ],
                         ),
-                        child: const Center(
-                          child: Icon(
-                            Icons.blur_on,
-                            size: 42,
-                            color: AppColors.primary,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(45),
+                          child: Image.asset(
+                            'assets/images/logo.png',
+                            fit: BoxFit.cover,
                           ),
                         ),
                       ),

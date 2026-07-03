@@ -4,7 +4,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../theme/colors.dart';
 import '../../theme/floating_gradients.dart';
-import '../../widgets/skincare_illustrations.dart';
 import '../home/home_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -34,24 +33,52 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
   // Step 2 Data
   String? _selectedSkinType;
   final List<Map<String, String>> _skinTypes = [
-    {'label': 'Dry', 'icon': '💧'},
-    {'label': 'Oily', 'icon': '✨'},
-    {'label': 'Combination', 'icon': '⚖️'},
-    {'label': 'Normal', 'icon': '🌿'},
-    {'label': 'Sensitive', 'icon': '🩷'},
+    {
+      'label': 'Dry',
+      'sub': 'Skin feels tight and dry',
+      'icon': '💧',
+    },
+    {
+      'label': 'Oily',
+      'sub': 'Shiny skin, prone to acne',
+      'icon': '✨',
+    },
+    {
+      'label': 'Combination',
+      'sub': 'Oily in some areas, dry in others',
+      'icon': '⚖️',
+    },
+    {
+      'label': 'Normal',
+      'sub': 'Balanced, not too oily or dry',
+      'icon': '🌿',
+    },
   ];
 
   // Step 3 Data
   final List<String> _selectedConcerns = [];
-  final List<String> _skinConcerns = ['Acne', 'Dark Spots', 'Dullness', 'Wrinkles', 'Redness'];
+  final List<String> _skinConcerns = [
+    'Acne',
+    'Dark Spots',
+    'Dullness',
+    'Wrinkles',
+    'Redness',
+    'Pores',
+    'Uneven Tone',
+    'Fine Lines'
+  ];
 
   // Step Labels
   final List<String> _stepLabels = ['Personal Info', 'Skin Type', 'Concerns', 'Summary'];
 
+  // Calibration checklist states
+  bool _profileCreated = false;
+  bool _preferencesSaved = false;
+  bool _calibrationDone = false;
+
   // Celebration Animation Controllers
   late AnimationController _celebrationController;
   late Animation<double> _scaleAnimation;
-  late Animation<double> _checkAnimation;
 
   @override
   void initState() {
@@ -64,12 +91,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
       CurvedAnimation(
         parent: _celebrationController,
         curve: const Interval(0.0, 0.5, curve: Curves.elasticOut),
-      ),
-    );
-    _checkAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _celebrationController,
-        curve: const Interval(0.4, 0.8, curve: Curves.easeOutBack),
       ),
     );
 
@@ -141,11 +162,33 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
   Future<void> _triggerCelebrationAndSave() async {
     setState(() {
       _showCelebration = true;
+      _profileCreated = false;
+      _preferencesSaved = false;
+      _calibrationDone = false;
     });
     
-    // Play haptic success impact
     HapticFeedback.heavyImpact();
     _celebrationController.forward();
+
+    // Sequential checkmark animations
+    Future.delayed(const Duration(milliseconds: 600), () {
+      if (mounted) {
+        setState(() => _profileCreated = true);
+        HapticFeedback.lightImpact();
+      }
+    });
+    Future.delayed(const Duration(milliseconds: 1400), () {
+      if (mounted) {
+        setState(() => _preferencesSaved = true);
+        HapticFeedback.lightImpact();
+      }
+    });
+    Future.delayed(const Duration(milliseconds: 2200), () {
+      if (mounted) {
+        setState(() => _calibrationDone = true);
+        HapticFeedback.mediumImpact();
+      }
+    });
 
     // Prepare Firestore upload
     final uid = FirebaseAuth.instance.currentUser?.uid;
@@ -166,8 +209,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
         'createdAt': FieldValue.serverTimestamp(),
       });
 
-      // Show celebration for a brief moment before navigating
-      await Future.delayed(const Duration(milliseconds: 2200));
+      // Show calibration details for a brief moment before navigating
+      await Future.delayed(const Duration(milliseconds: 3200));
 
       if (mounted) {
         Navigator.of(context).pushAndRemoveUntil(
@@ -536,204 +579,244 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
   }
 
   Widget _buildStep2() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const SizedBox(height: 10),
-          // Custom Skin Layers Illustration
-          const Center(
-            child: SkinLayersIllustration(),
-          ),
-          const SizedBox(height: 24),
-          
-          const Text(
-            'What is your skin type?',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-              letterSpacing: -0.5,
+    return _SlideFadeTransition(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const SizedBox(height: 20),
+            const Text(
+              'What is your skin type?',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                letterSpacing: -0.5,
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Select the profile that best matches your daily skin texture.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 14,
-              color: AppColors.textSecondary,
+            const SizedBox(height: 8),
+            const Text(
+              'Select the profile that best matches your daily skin texture.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: AppColors.textSecondary,
+              ),
             ),
-          ),
-          const SizedBox(height: 32),
-          
-          // Custom Scale & Glow Selection Cards for Skin Type
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: _skinTypes.length,
-            itemBuilder: (context, index) {
-              final type = _skinTypes[index];
-              final isSelected = _selectedSkinType == type['label'];
+            const SizedBox(height: 32),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _skinTypes.length,
+              itemBuilder: (context, index) {
+                final type = _skinTypes[index];
+                final isSelected = _selectedSkinType == type['label'];
 
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12.0),
-                child: GestureDetector(
-                  onTap: () {
-                    HapticFeedback.selectionClick();
-                    setState(() {
-                      _selectedSkinType = type['label'];
-                    });
-                  },
-                  child: AnimatedScale(
-                    scale: isSelected ? 1.03 : 1.0,
-                    duration: const Duration(milliseconds: 200),
-                    curve: Curves.easeOutBack,
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 250),
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                      decoration: BoxDecoration(
-                        color: isSelected ? AppColors.card : AppColors.card.withValues(alpha: 0.4),
-                        borderRadius: BorderRadius.circular(20),
-                        border: isSelected ? AppColors.activeGlassBorder : AppColors.glassBorder,
-                        boxShadow: isSelected ? AppColors.glowShadow : AppColors.softShadow,
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? AppColors.primary.withValues(alpha: 0.15)
-                                  : AppColors.accentLight,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Text(
-                              type['icon']!,
-                              style: const TextStyle(fontSize: 18),
-                            ),
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 16.0),
+                  child: GestureDetector(
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      setState(() {
+                        _selectedSkinType = type['label'];
+                      });
+                    },
+                    child: AnimatedScale(
+                      scale: isSelected ? 1.02 : 1.0,
+                      duration: const Duration(milliseconds: 200),
+                      curve: Curves.easeOutBack,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 250),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                        decoration: BoxDecoration(
+                          color: isSelected ? AppColors.card : AppColors.card.withValues(alpha: 0.4),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: isSelected ? const Color(0xFFE89A8D) : Colors.white.withValues(alpha: 0.08),
+                            width: isSelected ? 1.5 : 1.0,
                           ),
-                          const SizedBox(width: 16),
-                          Text(
-                            type['label']!,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                              color: isSelected ? Colors.white : AppColors.textPrimary,
+                          boxShadow: isSelected
+                              ? [
+                                  BoxShadow(
+                                    color: const Color(0xFFE89A8D).withValues(alpha: 0.15),
+                                    blurRadius: 10,
+                                    spreadRadius: 1,
+                                  )
+                                ]
+                              : AppColors.softShadow,
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? const Color(0xFFE89A8D).withValues(alpha: 0.15)
+                                    : AppColors.accentLight,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Text(
+                                type['icon']!,
+                                style: const TextStyle(fontSize: 20),
+                              ),
                             ),
-                          ),
-                          const Spacer(),
-                          AnimatedOpacity(
-                            opacity: isSelected ? 1.0 : 0.0,
-                            duration: const Duration(milliseconds: 200),
-                            child: const Icon(
-                              Icons.check_circle_rounded,
-                              color: AppColors.primary,
-                              size: 24,
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    type['label']!,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                                      color: isSelected ? Colors.white : AppColors.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    type['sub']!,
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                            if (isSelected)
+                              Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFFE89A8D),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.check,
+                                  color: Colors.white,
+                                  size: 14,
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              );
-            },
-          ),
-        ],
+                );
+              },
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildStep3() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const SizedBox(height: 10),
-          // Hexagon Grid Illustration
-          const Center(
-            child: AnalysisGridIllustration(),
-          ),
-          const SizedBox(height: 24),
-          
-          const Text(
-            'Targeted concerns',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-              letterSpacing: -0.5,
+    return _SlideFadeTransition(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const SizedBox(height: 20),
+            const Text(
+              'What are your primary concerns?',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                letterSpacing: -0.5,
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Select all conditions you wish to analyze & address.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 14,
-              color: AppColors.textSecondary,
+            const SizedBox(height: 8),
+            const Text(
+              'Select all that apply.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: AppColors.textSecondary,
+              ),
             ),
-          ),
-          const SizedBox(height: 32),
-          
-          // Modern Pill Chips with active animations
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            alignment: WrapAlignment.center,
-            children: _skinConcerns.map((concern) {
-              final isSelected = _selectedConcerns.contains(concern);
-              return GestureDetector(
-                onTap: () {
-                  HapticFeedback.selectionClick();
-                  setState(() {
-                    if (isSelected) {
-                      _selectedConcerns.remove(concern);
-                    } else {
-                      _selectedConcerns.add(concern);
-                    }
-                  });
-                },
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 250),
-                  padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 14),
-                  decoration: BoxDecoration(
-                    color: isSelected ? AppColors.card : AppColors.card.withValues(alpha: 0.4),
-                    borderRadius: BorderRadius.circular(24),
-                    border: isSelected ? AppColors.activeGlassBorder : AppColors.glassBorder,
-                    boxShadow: isSelected ? AppColors.glowShadow : [],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        concern,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                          color: isSelected ? Colors.white : AppColors.textSecondary,
+            const SizedBox(height: 40),
+            Wrap(
+              spacing: 12,
+              runSpacing: 16,
+              alignment: WrapAlignment.center,
+              children: _skinConcerns.map((concern) {
+                final isSelected = _selectedConcerns.contains(concern);
+                return GestureDetector(
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    setState(() {
+                      if (isSelected) {
+                        _selectedConcerns.remove(concern);
+                      } else {
+                        _selectedConcerns.add(concern);
+                      }
+                    });
+                  },
+                  child: AnimatedScale(
+                    scale: isSelected ? 1.05 : 1.0,
+                    duration: const Duration(milliseconds: 150),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: isSelected ? AppColors.card : AppColors.card.withValues(alpha: 0.4),
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: isSelected ? const Color(0xFFE89A8D) : Colors.white.withValues(alpha: 0.08),
+                          width: isSelected ? 1.5 : 1.0,
                         ),
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(
+                                  color: const Color(0xFFE89A8D).withValues(alpha: 0.15),
+                                  blurRadius: 8,
+                                )
+                              ]
+                            : [],
                       ),
-                      if (isSelected) ...[
-                        const SizedBox(width: 8),
-                        const Icon(
-                          Icons.add_circle,
-                          size: 16,
-                          color: AppColors.primary,
-                        ),
-                      ],
-                    ],
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            concern,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                              color: isSelected ? Colors.white : AppColors.textSecondary,
+                            ),
+                          ),
+                          if (isSelected) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.all(2),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFE89A8D),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.check,
+                                color: Colors.white,
+                                size: 10,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-              );
-            }).toList(),
-          ),
-        ],
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 40),
+          ],
+        ),
       ),
     );
   }
@@ -744,213 +827,164 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
     final String gender = _selectedGender ?? '';
     final String skinType = _selectedSkinType ?? '';
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const SizedBox(height: 20),
-          const Text(
-            'Calibrating Profile',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-              letterSpacing: -0.5,
+    return _SlideFadeTransition(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const SizedBox(height: 20),
+            const Text(
+              'Almost there!',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                letterSpacing: -0.5,
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Review your skin intelligence parameters.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 14,
-              color: AppColors.textSecondary,
+            const SizedBox(height: 8),
+            const Text(
+              'Review your details before we calibrate your AI profile.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: AppColors.textSecondary,
+              ),
             ),
-          ),
-          const SizedBox(height: 32),
+            const SizedBox(height: 32),
 
-          // User Profile Card (Initials Avatar + Metadata)
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: AppColors.card,
-              borderRadius: BorderRadius.circular(24),
-              border: AppColors.glassBorder,
-              boxShadow: AppColors.softShadow,
-            ),
-            child: Column(
-              children: [
-                // Avatar representation
-                Container(
-                  height: 68,
-                  width: 68,
-                  decoration: BoxDecoration(
-                    gradient: AppColors.primaryGradient,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.2),
-                        blurRadius: 10,
-                      )
-                    ],
-                  ),
-                  child: Center(
-                    child: Text(
-                      name.isNotEmpty ? name[0].toUpperCase() : 'S',
-                      style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+            // User Profile Card (Initials Avatar + Summary Table)
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: AppColors.card.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(28),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                boxShadow: AppColors.softShadow,
+              ),
+              child: Column(
+                children: [
+                  // Initial Avatar
+                  Container(
+                    height: 76,
+                    width: 76,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFE89A8D), Color(0xFFD97B6C)],
+                      ),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFE89A8D).withValues(alpha: 0.25),
+                          blurRadius: 15,
+                        )
+                      ],
+                    ),
+                    child: Center(
+                      child: Text(
+                        name.isNotEmpty ? name[0].toUpperCase() : 'N',
+                        style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  name,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                  const SizedBox(height: 20),
+                  Text(
+                    name.isNotEmpty ? name : 'Nikhil Bangarwa',
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: -0.5,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  '$gender • Age $age',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: AppColors.textSecondary,
+                  const SizedBox(height: 6),
+                  Text(
+                    '$gender - Age ${age.isNotEmpty ? age : '18'}',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
+                  const SizedBox(height: 28),
 
-          // Details summary cards
-          Row(
-            children: [
-              // Skin Type Card
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: AppColors.card.withValues(alpha: 0.5),
-                    borderRadius: BorderRadius.circular(20),
-                    border: AppColors.glassBorder,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Skin Profile',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
-                          fontWeight: FontWeight.w600,
+                  // Inner table summary
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: AppColors.background.withValues(alpha: 0.7),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.04)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Your Profile Summary',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFE89A8D),
+                            letterSpacing: 0.5,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        skinType,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
+                        const SizedBox(height: 16),
+                        _buildSummaryRow('Skin Type', skinType.isNotEmpty ? skinType : 'Combination'),
+                        const Divider(color: Colors.white10, height: 24, thickness: 0.8),
+                        _buildSummaryRow(
+                          'Primary Concerns',
+                          _selectedConcerns.isNotEmpty ? _selectedConcerns.join(', ') : 'Acne, Dark Spots',
                         ),
-                      ),
-                    ],
+                        const Divider(color: Colors.white10, height: 24, thickness: 0.8),
+                        _buildSummaryRow('AI Algorithm', 'SkinAI v1.0'),
+                      ],
+                    ),
                   ),
-                ),
+                ],
               ),
-              const SizedBox(width: 12),
-              // Analysis Mode card
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: AppColors.card.withValues(alpha: 0.5),
-                    borderRadius: BorderRadius.circular(20),
-                    border: AppColors.glassBorder,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Algorithm',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'AI Scan v1.0',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          // Selected Concerns Card
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: AppColors.card.withValues(alpha: 0.5),
-              borderRadius: BorderRadius.circular(24),
-              border: AppColors.glassBorder,
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Text(
-                  'Identified Targets',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: _selectedConcerns.map((concern) {
-                    return Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: AppColors.accentLight,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-                      ),
-                      child: Text(
-                        concern,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 30),
-        ],
+            const SizedBox(height: 40),
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildSummaryRow(String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          flex: 2,
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 14,
+              color: AppColors.textSecondary,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        Expanded(
+          flex: 3,
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -993,11 +1027,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
               child: Container(
                 height: 52,
                 decoration: BoxDecoration(
-                  gradient: AppColors.primaryGradient,
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFE89A8D), Color(0xFFD97B6C)],
+                  ),
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.25),
+                      color: const Color(0xFFE89A8D).withValues(alpha: 0.25),
                       blurRadius: 15,
                       offset: const Offset(0, 4),
                     )
@@ -1012,13 +1048,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                       borderRadius: BorderRadius.circular(24),
                     ),
                   ),
-                  child: Text(
-                    _currentPage == 3 ? 'Calibrate AI' : 'Continue',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        _currentPage == 3 ? 'Calibrate AI' : 'Continue',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Icon(
+                        Icons.chevron_right_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -1029,78 +1076,190 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
     );
   }
 
-  // Celebratory Overlay Animation Widget (Step 4 Complete)
+  // Celebratory Overlay Animation Widget (Calibration Screen)
   Widget _buildCelebrationOverlay() {
     return Positioned.fill(
       child: Container(
-        color: AppColors.background.withValues(alpha: 0.95),
-        child: AnimatedBuilder(
-          animation: _celebrationController,
-          builder: (context, child) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Growing checkmark sphere
-                  Transform.scale(
-                    scale: _scaleAnimation.value,
+        color: AppColors.background.withValues(alpha: 0.98),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Spacer(),
+                
+                // Pulsing Dash circle loader
+                Container(
+                  height: 120,
+                  width: 120,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: const Color(0xFFE89A8D).withValues(alpha: 0.15), width: 4),
+                  ),
+                  child: Center(
+                    child: AnimatedBuilder(
+                      animation: _celebrationController,
+                      builder: (context, child) {
+                        return Transform.scale(
+                          scale: _scaleAnimation.value,
+                          child: Container(
+                            height: 90,
+                            width: 90,
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFFE89A8D), Color(0xFFD97B6C)],
+                              ),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFFE89A8D).withValues(alpha: 0.4),
+                                  blurRadius: 25,
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.done_all_rounded,
+                              size: 40,
+                              color: Colors.white,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 40),
+
+                // Wording matching the image
+                const Text(
+                  'Calibrating Your Profile',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Our AI is analyzing your preferences to deliver accurate skin insights.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.textSecondary,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 48),
+
+                // Bullet checklist with transitions
+                Container(
+                  width: 280,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: AppColors.card.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                  ),
+                  child: Column(
+                    children: [
+                      _buildChecklistItem('Profile Created', _profileCreated),
+                      const SizedBox(height: 16),
+                      _buildChecklistItem('Preferences Saved', _preferencesSaved),
+                      const SizedBox(height: 16),
+                      _buildChecklistItem('AI Calibration Complete', _calibrationDone),
+                    ],
+                  ),
+                ),
+
+                const Spacer(),
+
+                // Bottom CTA Get Started Button appearing once calibration is done
+                AnimatedOpacity(
+                  opacity: _calibrationDone ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 300),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 52,
                     child: Container(
-                      height: 110,
-                      width: 110,
                       decoration: BoxDecoration(
-                        gradient: AppColors.primaryGradient,
-                        shape: BoxShape.circle,
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFE89A8D), Color(0xFFD97B6C)],
+                        ),
+                        borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.4),
-                            blurRadius: 30,
-                            spreadRadius: 4,
-                          ),
+                            color: const Color(0xFFE89A8D).withValues(alpha: 0.25),
+                            blurRadius: 15,
+                            offset: const Offset(0, 4),
+                          )
                         ],
                       ),
-                      child: Center(
-                        child: RotationTransition(
-                          turns: _checkAnimation,
-                          child: Icon(
-                            Icons.done_all_rounded,
-                            size: 52,
-                            color: Colors.white.withValues(alpha: _checkAnimation.value),
+                      child: ElevatedButton(
+                        onPressed: _calibrationDone
+                            ? () {
+                                HapticFeedback.mediumImpact();
+                                Navigator.of(context).pushAndRemoveUntil(
+                                  MaterialPageRoute(builder: (_) => const HomeScreen()),
+                                  (route) => false,
+                                );
+                              }
+                            : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                        ),
+                        child: const Text(
+                          'Get Started',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 40),
-                  Opacity(
-                    opacity: _scaleAnimation.value,
-                    child: const Text(
-                      'Calibration Complete',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Opacity(
-                    opacity: _scaleAnimation.value,
-                    child: const Text(
-                      'Setting up your personalized diagnostic hub...',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
+                ),
+              ],
+            ),
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _buildChecklistItem(String title, bool isCompleted) {
+    return Row(
+      children: [
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: isCompleted ? Colors.green.withValues(alpha: 0.15) : Colors.white10,
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            isCompleted ? Icons.check : Icons.hourglass_empty_rounded,
+            color: isCompleted ? Colors.green : AppColors.textSecondary,
+            size: 14,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: isCompleted ? FontWeight.bold : FontWeight.w500,
+            color: isCompleted ? Colors.white : AppColors.textSecondary,
+          ),
+        ),
+      ],
     );
   }
 }
