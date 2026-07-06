@@ -5,13 +5,17 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
-import '../../services/auth_service.dart';
-import '../../theme/colors.dart';
-import '../../theme/floating_gradients.dart';
-import '../../widgets/sparkline_painter.dart';
+import '../../core/services/auth_service.dart';
+import '../../core/localization/app_localizations.dart';
+import '../../core/theme/colors.dart';
+import 'package:sizer/sizer.dart';
+import '../../core/theme/spacing.dart';
+import '../../core/theme/floating_gradients.dart';
+import '../../core/widgets/sparkline_painter.dart';
 import '../scan/scan_screen.dart';
 import '../scan/result_screen.dart';
 import '../auth/login_screen.dart';
+import '../settings/settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -245,13 +249,13 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
+                children: [
                   Text(
                     'SkinAI',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w900,
-                      color: Colors.white,
+                      color: AppColors.textPrimary,
                       letterSpacing: -1.0,
                     ),
                   ),
@@ -278,14 +282,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
-                        const Icon(Icons.notifications_none, color: Colors.white, size: 20),
+                        Icon(Icons.notifications_none, color: AppColors.textPrimary, size: 20),
                         Positioned(
                           top: 10,
                           right: 12,
                           child: Container(
                             height: 6,
                             width: 6,
-                            decoration: const BoxDecoration(
+                            decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: AppColors.primary,
                             ),
@@ -322,7 +326,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     Text(
                       '${_getGreeting()},',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         color: AppColors.textSecondary,
                         fontWeight: FontWeight.w500,
@@ -331,15 +335,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: 4),
                     Text(
                       name,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 26,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                         letterSpacing: -0.5,
                       ),
                     ),
                     const SizedBox(height: 4),
-                    const Text(
+                    Text(
                       'Let’s keep your skin healthy and glowing.',
                       style: TextStyle(
                         fontSize: 13,
@@ -370,7 +374,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: CircularProgressIndicator(
                         value: hasScans ? (latestScore / 100.0) : 0.0,
                         strokeWidth: 5,
-                        backgroundColor: Colors.white.withValues(alpha: 0.05),
+                        backgroundColor: AppColors.borderColor,
                         color: AppColors.primary,
                       ),
                     ),
@@ -379,13 +383,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         Text(
                           hasScans ? '$latestScore' : '--',
-                          style: const TextStyle(
-                            fontSize: 20,
+                          style: TextStyle(
+                            fontSize: 16.sp,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            color: AppColors.textPrimary,
                           ),
                         ),
-                        const Text(
+                        Text(
                           'Score',
                           style: TextStyle(
                             fontSize: 9,
@@ -416,7 +420,7 @@ class _HomeScreenState extends State<HomeScreen> {
           GestureDetector(
             onTap: _navigateToScan,
             child: Container(
-              height: 220,
+              height: 26.h,
               decoration: BoxDecoration(
                 color: AppColors.card,
                 borderRadius: BorderRadius.circular(24),
@@ -460,7 +464,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   children: [
                                     // Circular Scanner Badge
                                     Container(
-                                      height: 52,
+                                      height: 6.h,
                                       width: 52,
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
@@ -481,10 +485,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                           ),
                                         ],
                                       ),
-                                      child: const Center(
+                                      child: Center(
                                         child: Icon(
                                           Icons.face_retouching_natural,
-                                          color: Colors.white,
+                                          color: Theme.of(context).colorScheme.onPrimary,
                                           size: 26,
                                         ),
                                       ),
@@ -494,9 +498,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: const [
+                                        children: [
                                           Text(
-                                            'Ready to scan?',
+                                            context.l10n.readyToScan,
                                             style: TextStyle(
                                               fontSize: 13,
                                               fontWeight: FontWeight.bold,
@@ -505,7 +509,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           ),
                                           SizedBox(height: 4),
                                           Text(
-                                            'Analyze Your Skin',
+                                            context.l10n.analyzeYourSkin,
                                             style: TextStyle(
                                               fontSize: 18,
                                               fontWeight: FontWeight.bold,
@@ -546,11 +550,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
-                                    children: const [
+                                    children: [
                                       Text(
-                                        'Start Scan',
+                                        context.l10n.startScan,
                                         style: TextStyle(
-                                          color: Colors.white,
+                                          color: Theme.of(context).colorScheme.onPrimary,
                                           fontSize: 14,
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -585,13 +589,13 @@ class _HomeScreenState extends State<HomeScreen> {
           // Overview Section
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
+            children: [
               Text(
                 'Overview Metrics',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: AppColors.textPrimary,
                 ),
               ),
               Text(
@@ -607,24 +611,24 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 16),
 
           SizedBox(
-            height: 144,
+            height: 18.h,
             child: ListView(
               scrollDirection: Axis.horizontal,
               children: [
                 _buildOverviewCard(
                   iconColor: const Color(0xFF3A2E2B),
                   icon: Icons.calendar_today,
-                  title: 'Last Scan',
-                  value: hasScans ? 'Completed' : 'No Scans Yet',
+                  title: context.l10n.lastScan,
+                  value: hasScans ? context.l10n.completed : context.l10n.noScansYet,
                   sub: lastScanText,
                   child: hasScans
                       ? GestureDetector(
                           onTap: () => _openReportDetails(latestScanData!),
                           child: Row(
-                            children: const [
-                              Text('View Result', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
-                              SizedBox(width: 4),
-                              Icon(Icons.chevron_right, color: Colors.white, size: 12),
+                            children: [
+                              Text('View Result', style: TextStyle(color: AppColors.textPrimary, fontSize: 8.5.sp, fontWeight: FontWeight.bold)),
+                              const SizedBox(width: 4),
+                              Icon(Icons.chevron_right, color: AppColors.textPrimary, size: 9.sp),
                             ],
                           ),
                         )
@@ -633,7 +637,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 _buildOverviewCard(
                   iconColor: const Color(0xFF203A30),
                   icon: Icons.trending_up,
-                  title: 'Skin Progress',
+                  title: context.l10n.skinProgress,
                   value: hasScans ? 'Improving' : 'N/A',
                   sub: hasScans ? '+12% this month' : 'Needs baseline scan',
                   child: SizedBox(
@@ -650,7 +654,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 _buildOverviewCard(
                   iconColor: const Color(0xFF202E3A),
                   icon: Icons.opacity,
-                  title: 'Hydration',
+                  title: context.l10n.hydration,
                   value: 'Good',
                   sub: '68% water retention',
                   child: ClipRRect(
@@ -669,12 +673,12 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 24),
 
           // Skin Profile row
-          const Text(
-            'Your Skin Profile',
+          Text(
+            context.l10n.yourSkinProfile,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: AppColors.textPrimary,
             ),
           ),
           const SizedBox(height: 16),
@@ -688,9 +692,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             child: Row(
               children: [
-                _buildProfileMetaCol(Icons.opacity, 'Skin Type', skinType ?? 'Oily'),
+                _buildProfileMetaCol(Icons.opacity, context.l10n.step2Title, skinType ?? 'Oily'),
                 Container(width: 1, height: 40, color: AppColors.divider),
-                _buildProfileMetaCol(Icons.layers, 'Concerns', '${concerns.length} Active'),
+                _buildProfileMetaCol(Icons.layers, context.l10n.step3Title, '${concerns.length} Active'),
                 Container(width: 1, height: 40, color: AppColors.divider),
                 _buildProfileMetaCol(Icons.check_circle, 'Goals', 'Even Tone'),
               ],
@@ -699,20 +703,20 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 24),
 
           // Smart insights section
-          const Text(
-            'Smart Contextual Insights',
+          Text(
+            context.l10n.smartInsights,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: AppColors.textPrimary,
             ),
           ),
           const SizedBox(height: 16),
 
           Column(
             children: [
-              _buildInsightCard(Icons.wb_sunny_outlined, 'UV Alert', 'UV index is elevated. Apply SPF 50 sunscreen.', const Color(0xFF3A2925)),
-              _buildInsightCard(Icons.opacity, 'Hydration Reminder', 'Drink 500ml water to recover cell elasticity.', const Color(0xFF202E3A)),
+              _buildInsightCard(Icons.wb_sunny_outlined, context.l10n.uvAlertTitle, context.l10n.uvAlertDesc, const Color(0xFF3A2925)),
+              _buildInsightCard(Icons.opacity, context.l10n.hydrationReminderTitle, context.l10n.hydrationReminderDesc, const Color(0xFF202E3A)),
             ],
           ),
           const SizedBox(height: 100),
@@ -738,13 +742,13 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Icon(Icons.history_toggle_off, size: 58, color: AppColors.primary.withValues(alpha: 0.5)),
               const SizedBox(height: 20),
-              const Text(
-                'No Scans Yet',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+              Text(
+                context.l10n.noScansYet,
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
               ),
               const SizedBox(height: 8),
-              const Text(
-                'Generate your first medical-grade report to track your scan history.',
+              Text(
+                context.l10n.noScansYetDesc,
                 textAlign: TextAlign.center,
                 style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
               ),
@@ -754,11 +758,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
                 ),
-                child: const Text(
-                  'Start Your First Scan',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                child: Text(
+                  context.l10n.startFirstScan,
+                  style: TextStyle(color: Theme.of(context).colorScheme.onPrimary, fontWeight: FontWeight.bold),
                 ),
               ),
             ],
@@ -773,12 +777,12 @@ class _HomeScreenState extends State<HomeScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const SizedBox(height: 10),
-          const Text(
-            'Scan Reports History',
+          Text(
+            context.l10n.scanReportsHistory,
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: AppColors.textPrimary,
               letterSpacing: -0.5,
             ),
           ),
@@ -794,11 +798,11 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             child: Row(
               children: [
-                _buildAnalyticsBox('Total Scans', '$totalScans'),
+                _buildAnalyticsBox(context.l10n.totalScans, '$totalScans'),
                 Container(width: 1, height: 30, color: AppColors.divider),
-                _buildAnalyticsBox('Average Score', '$avgScore'),
+                _buildAnalyticsBox(context.l10n.avgScore, '$avgScore'),
                 Container(width: 1, height: 30, color: AppColors.divider),
-                _buildAnalyticsBox('Best Score', '$bestScore'),
+                _buildAnalyticsBox(context.l10n.bestScore, '$bestScore'),
               ],
             ),
           ),
@@ -841,11 +845,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Row(
                         children: [
                           Container(
-                            height: 52,
+                            height: 6.h,
                             width: 52,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                              border: Border.all(color: AppColors.borderColor),
                               image: DecorationImage(
                                 image: thumbnailProvider,
                                 fit: BoxFit.cover,
@@ -871,7 +875,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   summary,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 11,
                                     color: AppColors.textSecondary,
                                   ),
@@ -888,7 +892,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             child: Text(
                               '$score',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: AppColors.primary,
                                 fontWeight: FontWeight.w900,
                                 fontSize: 14,
@@ -913,9 +917,9 @@ class _HomeScreenState extends State<HomeScreen> {
     return Expanded(
       child: Column(
         children: [
-          Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 10, fontWeight: FontWeight.w600)),
+          Text(label, style: TextStyle(color: AppColors.textSecondary, fontSize: 10, fontWeight: FontWeight.w600)),
           const SizedBox(height: 6),
-          Text(value, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900)),
+          Text(value, style: TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.w900)),
         ],
       ),
     );
@@ -937,9 +941,9 @@ class _HomeScreenState extends State<HomeScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: const TextStyle(color: AppColors.textSecondary, fontSize: 10)),
+              Text(title, style: TextStyle(color: AppColors.textSecondary, fontSize: 10)),
               const SizedBox(height: 2),
-              Text(val, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+              Text(val, style: TextStyle(color: AppColors.textPrimary, fontSize: 13, fontWeight: FontWeight.bold)),
             ],
           ),
         ],
@@ -983,12 +987,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 16),
                 Text(
                   name,
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+                  style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   email ?? 'user@skinai.com',
-                  style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
+                  style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
                 ),
               ],
             ),
@@ -1006,17 +1010,22 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildAnalyticsBox('Scans', '$totalScans'),
-                _buildAnalyticsBox('Best Score', '$bestScore'),
-                _buildAnalyticsBox('Type', skinType ?? 'Oily'),
+                _buildAnalyticsBox(context.l10n.scan, '$totalScans'),
+                _buildAnalyticsBox(context.l10n.bestScore, '$bestScore'),
+                _buildAnalyticsBox(context.l10n.step2Title, skinType ?? 'Oily'),
               ],
             ),
           ),
           const SizedBox(height: 28),
 
           // Settings Options
-          _buildSettingsOption(Icons.download, 'Export Data JSON', () => _exportJsonData(totalScans)),
-          _buildSettingsOption(Icons.delete_outline, 'Delete Account', _confirmDeleteAccount, isDestructive: true),
+          _buildSettingsOption(Icons.settings_outlined, context.l10n.appSettings, () {
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const SettingsScreen()),
+            );
+          }),
+          _buildSettingsOption(Icons.download, context.l10n.exportData, () => _exportJsonData(totalScans)),
+          _buildSettingsOption(Icons.delete_outline, context.l10n.deleteAccount, _confirmDeleteAccount, isDestructive: true),
           const SizedBox(height: 32),
 
           // Sign Out Action Button
@@ -1036,9 +1045,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 shadowColor: Colors.transparent,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
               ),
-              child: const Text(
-                'Sign Out',
-                style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+              child: Text(
+                context.l10n.signOut,
+                style: TextStyle(color: Theme.of(context).colorScheme.onPrimary, fontSize: 12.sp, fontWeight: FontWeight.bold),
               ),
             ),
           ),
@@ -1073,11 +1082,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: isDestructive ? AppColors.error : Colors.white,
+                    color: isDestructive ? AppColors.error : AppColors.textPrimary,
                   ),
                 ),
               ),
-              const Icon(Icons.chevron_right, color: AppColors.textSecondary, size: 16),
+              Icon(Icons.chevron_right, color: AppColors.textSecondary, size: 16),
             ],
           ),
         ),
@@ -1086,9 +1095,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _exportJsonData(int total) async {
+    final l10n = context.l10n;
+    final noRecordsText = l10n.exportNoRecords;
+    final successText = l10n.exportSuccess;
+    final errorText = l10n.exportError;
+    
     if (total == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No scan records found to export.')),
+        SnackBar(content: Text(noRecordsText)),
       );
       return;
     }
@@ -1110,11 +1124,11 @@ class _HomeScreenState extends State<HomeScreen> {
       await file.writeAsString(jsonString);
       
       // ignore: deprecated_member_use
-      await Share.shareXFiles([XFile(file.path)], text: "Here is my exported SkinAI diagnostic database!");
+      await Share.shareXFiles([XFile(file.path)], text: successText);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Unable to export data. Please try again.')),
+        SnackBar(content: Text(errorText)),
       );
     }
   }
@@ -1126,17 +1140,17 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: AppColors.surface,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+          side: BorderSide(color: AppColors.borderColor),
         ),
-        title: const Text('Delete Account?', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        content: const Text(
-          'This action is permanent and deletes all your stored scan logs from the system.',
+        title: Text(context.l10n.deleteAccountConfirmTitle, style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
+        content: Text(
+          context.l10n.deleteAccountConfirmDesc,
           style: TextStyle(color: AppColors.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
+            child: Text(context.l10n.cancel, style: TextStyle(color: AppColors.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -1144,7 +1158,7 @@ class _HomeScreenState extends State<HomeScreen> {
               await _deleteUserDataAndAuth();
             },
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text('Delete', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: Text(context.l10n.deleteAccountConfirmButton, style: TextStyle(color: Theme.of(context).colorScheme.onError, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -1178,8 +1192,8 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Unable to delete your account. Re-login and try again.'),
+        SnackBar(
+          content: Text(context.l10n.deleteAccountError),
           backgroundColor: AppColors.error,
         ),
       );
@@ -1218,7 +1232,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildSkeletonLoading() {
-    return const Scaffold(
+    return Scaffold(
       backgroundColor: AppColors.background,
       body: Center(
         child: CircularProgressIndicator(color: AppColors.primary),
@@ -1261,7 +1275,7 @@ class _HomeScreenState extends State<HomeScreen> {
               Expanded(
                 child: Text(
                   title,
-                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w600),
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w600),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -1269,9 +1283,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           const Spacer(),
-          Text(value, style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold)),
+          Text(value, style: TextStyle(color: AppColors.textPrimary, fontSize: 15, fontWeight: FontWeight.bold)),
           const SizedBox(height: 2),
-          Text(sub, style: const TextStyle(color: AppColors.textSecondary, fontSize: 10), maxLines: 1, overflow: TextOverflow.ellipsis),
+          Text(sub, style: TextStyle(color: AppColors.textSecondary, fontSize: 10), maxLines: 1, overflow: TextOverflow.ellipsis),
           const SizedBox(height: 12),
           child,
         ],
@@ -1285,7 +1299,7 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Icon(icon, color: AppColors.primary, size: 18),
           const SizedBox(height: 6),
-          Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 11)),
+          Text(label, style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
           const SizedBox(height: 4),
           Text(val, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
         ],
@@ -1321,11 +1335,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Text(title, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 2),
-                  Text(sub, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                  Text(sub, style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: AppColors.textSecondary, size: 18),
+            Icon(Icons.chevron_right, color: AppColors.textSecondary, size: 18),
           ],
         ),
       ),
@@ -1346,7 +1360,7 @@ class _HomeScreenState extends State<HomeScreen> {
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Your diagnostic metrics will appear here once scans are processed.',
               textAlign: TextAlign.center,
               style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
@@ -1365,18 +1379,19 @@ class _HomeScreenState extends State<HomeScreen> {
       Icons.compass_calibration_outlined,
       Icons.person_outline,
     ];
-    final labels = ['Home', 'History', 'Scan', 'Insights', 'Profile'];
+    final labels = [context.l10n.home, context.l10n.history, context.l10n.scan, context.l10n.insights, context.l10n.profile];
 
     return Positioned(
       bottom: 20,
       left: 20,
       right: 20,
       child: Container(
-        height: 72,
+        height: 9.h,
         decoration: BoxDecoration(
-          color: const Color(0xFF0F1115).withValues(alpha: 0.85),
+          color: AppColors.cardBackground.withValues(alpha: 0.85),
           borderRadius: BorderRadius.circular(36),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+          border: Border.all(color: AppColors.borderColor),
+          boxShadow: AppColors.softShadow,
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(36),
@@ -1390,13 +1405,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 return GestureDetector(
                   onTap: _navigateToScan,
                   child: Container(
-                    height: 56,
-                    width: 56,
-                    decoration: const BoxDecoration(
+                    height: 7.h,
+                    width: 7.h,
+                    decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: AppColors.primaryGradient,
                     ),
-                    child: const Icon(Icons.camera_alt, color: Colors.white, size: 24),
+                    child: Icon(Icons.camera_alt, color: Theme.of(context).colorScheme.onPrimary, size: 24),
                   ),
                 );
               }
@@ -1409,20 +1424,20 @@ class _HomeScreenState extends State<HomeScreen> {
                   });
                 },
                 child: SizedBox(
-                  width: 50,
+                  width: 12.w,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
                         icons[index],
                         color: isSelected ? AppColors.primary : AppColors.textSecondary,
-                        size: 22,
+                        size: 16.sp,
                       ),
                       const SizedBox(height: 4),
                       Text(
                         labels[index],
                         style: TextStyle(
-                          fontSize: 10,
+                          fontSize: 8.sp,
                           fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                           color: isSelected ? AppColors.primary : AppColors.textSecondary,
                         ),

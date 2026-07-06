@@ -7,8 +7,10 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
-import '../../theme/colors.dart';
-import '../../theme/floating_gradients.dart';
+import '../../core/theme/colors.dart';
+import 'package:sizer/sizer.dart';
+import '../../core/localization/app_localizations.dart';
+import '../../core/theme/floating_gradients.dart';
 
 class ResultScreen extends StatefulWidget {
   final String imagePath;
@@ -31,6 +33,31 @@ class ResultScreen extends StatefulWidget {
 }
 
 class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderStateMixin {
+
+  String _getConcernLabel(BuildContext context, String key) {
+    final l10n = context.l10n;
+    switch (key) {
+      case 'Acne': return l10n.concernAcne;
+      case 'Dullness': return l10n.concernDullness;
+      case 'Wrinkles': return l10n.concernWrinkles;
+      case 'Redness': return l10n.concernRedness;
+      case 'Pores': return l10n.concernPores;
+      case 'Uneven Tone': return l10n.concernUnevenTone;
+      case 'Fine Lines': return l10n.concernWrinkles;
+      case 'Dark Spots': return l10n.concernDarkCircles;
+      case 'Dark Circles': return l10n.concernDarkCircles;
+      case 'Pigmentation': return l10n.concernDarkCircles;
+      default: return key;
+    }
+  }
+
+  String _getSeverityLabel(BuildContext context, int severity) {
+    final l10n = context.l10n;
+    if (severity <= 35) return l10n.severityMild;
+    if (severity <= 70) return l10n.severityModerate;
+    return l10n.severitySevere;
+  }
+
   String _activeConcern = 'Acne';
   bool _isSaving = false;
   bool _saveSuccess = false;
@@ -93,40 +120,41 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
 
   // Generate premium medical PDF report & invoke share sheet
   Future<void> _exportPdfReport() async {
+    final l10n = context.l10n;
     try {
       HapticFeedback.lightImpact();
       final pdf = pw.Document();
       final sortedConcerns = widget.indicators.keys.toList()
         ..sort((a, b) => (widget.indicators[b]['severity'] as int).compareTo(widget.indicators[a]['severity'] as int));
       final top3 = sortedConcerns.take(3).toList();
-      final dynamicSummary = _generateDynamicSummary();
-      final morningR = _generateMorningRoutine(top3);
-      final nightR = _generateNightRoutine(top3);
+      final dynamicSummary = _generateDynamicSummary(context);
+      final morningR = _generateMorningRoutine(context, top3);
+      final nightR = _generateNightRoutine(context, top3);
       
-      String badgeText = "Healthy";
+      String badgeText = l10n.healthy;
       if (widget.score >= 88) {
-        badgeText = "Healthy";
+        badgeText = l10n.healthy;
       } else if (_previousScore != null && widget.score > _previousScore!) {
-        badgeText = "Improving";
+        badgeText = l10n.improving;
       } else if (widget.score >= 68) {
-        badgeText = "Needs Attention";
+        badgeText = l10n.needsAttention;
       } else {
-        badgeText = "High Concern";
+        badgeText = l10n.highConcern;
       }
 
       pdf.addPage(
         pw.Page(
           pageFormat: PdfPageFormat.a4,
-          build: (pw.Context context) {
+          build: (pw.Context pdfContext) {
             return pw.Padding(
               padding: const pw.EdgeInsets.all(32),
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                  pw.Text("SkinAI Diagnostic Report",
+                  pw.Text(l10n.pdfReportTitle,
                       style: pw.TextStyle(fontSize: 26, fontWeight: pw.FontWeight.bold)),
                   pw.SizedBox(height: 4),
-                  pw.Text("Medical-Grade Skin Intelligence Analysis",
+                  pw.Text(l10n.pdfReportSub,
                       style: const pw.TextStyle(fontSize: 12, color: PdfColors.grey700)),
                   pw.Divider(thickness: 1.5, color: PdfColors.grey400),
                   pw.SizedBox(height: 20),
@@ -136,21 +164,21 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                       pw.Column(
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
-                          pw.Text("Skin Score: ${widget.score} / 100 ($badgeText)",
+                          pw.Text(l10n.pdfScoreText.replaceAll('{value}', '${widget.score}').replaceAll('{badge}', badgeText),
                               style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
-                          pw.Text("Analysis Confidence: ${widget.confidence.toStringAsFixed(1)}%"),
+                          pw.Text(l10n.pdfConfidenceText.replaceAll('{value}', widget.confidence.toStringAsFixed(1))),
                         ],
                       ),
                       pw.Text(DateTime.now().toLocal().toString().substring(0, 16)),
                     ],
                   ),
                   pw.SizedBox(height: 24),
-                  pw.Text("AI Diagnostic Summary:",
+                  pw.Text(l10n.pdfSummaryHeader,
                       style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
                   pw.SizedBox(height: 6),
                   pw.Text(dynamicSummary, style: const pw.TextStyle(fontSize: 11, lineSpacing: 1.3)),
                   pw.SizedBox(height: 24),
-                  pw.Text("Primary Concerns Mapped:",
+                  pw.Text(l10n.pdfConcernsHeader,
                       style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
                   pw.SizedBox(height: 10),
                   ...top3.map((key) {
@@ -158,7 +186,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                     return pw.Padding(
                       padding: const pw.EdgeInsets.only(bottom: 8),
                       child: pw.Bullet(
-                        text: "$key: ${data['severity']}% Severity - ${data['desc']}",
+                        text: "${_getConcernLabel(context, key)}: ${data['severity']}% Severity - ${data['desc']}",
                         style: const pw.TextStyle(fontSize: 10),
                       ),
                     );
@@ -166,13 +194,13 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                   pw.SizedBox(height: 24),
                   pw.Divider(thickness: 1, color: PdfColors.grey300),
                   pw.SizedBox(height: 10),
-                  pw.Text("Recommended Routine Suggestion (Dynamic):",
+                  pw.Text(l10n.pdfRoutineHeader,
                       style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
                   pw.SizedBox(height: 8),
-                  pw.Text("Morning Routine:\n$morningR",
+                  pw.Text("${l10n.morningRoutine}:\n$morningR",
                       style: const pw.TextStyle(fontSize: 10, lineSpacing: 1.2)),
                   pw.SizedBox(height: 8),
-                  pw.Text("Night Routine:\n$nightR",
+                  pw.Text("${l10n.nightRoutine}:\n$nightR",
                       style: const pw.TextStyle(fontSize: 10, lineSpacing: 1.2)),
                 ],
               ),
@@ -186,17 +214,18 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
       await file.writeAsBytes(await pdf.save());
       
       // ignore: deprecated_member_use
-      await Share.shareXFiles([XFile(file.path)], text: "Check out my SkinAI diagnostic report.");
+      await Share.shareXFiles([XFile(file.path)], text: l10n.pdfShareText);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Unable to generate PDF. Please try again.")),
+        SnackBar(content: Text(l10n.unableToGeneratePdf)),
       );
     }
   }
 
   // Controlled Firestore saving with custom success animations and error translations
   Future<void> _saveReportToFirestore() async {
+    final l10n = context.l10n;
     final String? uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) return;
 
@@ -238,10 +267,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
       });
       
       // Error Translation: friendly errors only. Never expose raw firebase codes
-      String errorMessage = "Unable to save your report. Please try again.";
-      if (e.toString().contains("permission-denied") || e.toString().contains("PERMISSION_DENIED")) {
-        errorMessage = "Unable to save your report. Please try again.";
-      }
+      String errorMessage = l10n.unableToSaveReport;
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -253,11 +279,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     }
   }
 
-  String _getSeverityLabel(int severity) {
-    if (severity <= 35) return 'Mild';
-    if (severity <= 70) return 'Moderate';
-    return 'Severe';
-  }
+
 
   Color _getBadgeColor(String badge) {
     switch (badge) {
@@ -274,7 +296,8 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     }
   }
 
-  String _generateDynamicSummary() {
+  String _generateDynamicSummary(BuildContext context) {
+    final l10n = context.l10n;
     final List<String> summaryPoints = [];
     final acne = widget.indicators['Acne']?['severity'] ?? 0;
     final darkCircles = widget.indicators['Dark Circles']?['severity'] ?? 0;
@@ -283,85 +306,93 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     final texture = widget.indicators['Texture']?['severity'] ?? 0;
 
     if (acne > 60) {
-      summaryPoints.add("Severe breakout activity detected. Focus on dermatologist guidance and avoid active ingredient conflicts.");
+      summaryPoints.add(l10n.summaryBreakoutSevere);
     } else if (acne > 30) {
-      summaryPoints.add("Moderate acne and pore blockage identified. Salicylic Acid and Niacinamide can target excess sebum.");
+      summaryPoints.add(l10n.summaryAcneModerate);
     }
 
     if (darkCircles > 50) {
-      summaryPoints.add("Prominent dark circles present. Focus on improving sleep quality, hydration, and reducing blue-light exposure.");
+      summaryPoints.add(l10n.summaryDarkCirclesProminent);
     }
 
     if (pigmentation > 50) {
-      summaryPoints.add("Hyperpigmentation is one of the primary concerns requiring consistent daily SPF 50+ sunscreen.");
+      summaryPoints.add(l10n.summaryPigmentationSPF);
     }
 
     if (redness > 50) {
-      summaryPoints.add("Elevated redness detected. Focus on calming and barrier repair.");
+      summaryPoints.add(l10n.summaryRednessCalming);
     }
 
     if (texture > 50) {
-      summaryPoints.add("Uneven micro-texture observed. Focus on gentle chemical exfoliation and deep hydration support.");
+      summaryPoints.add(l10n.summaryTextureExfoliation);
     }
 
     if (summaryPoints.isEmpty) {
-      summaryPoints.add("Your skin barrier shows highly balanced overall health. Focus on preventative sunscreen layers and hydration support.");
+      summaryPoints.add(l10n.summaryHealthyBalanced);
     }
 
     return summaryPoints.join(" ");
   }
 
-  String _generateMorningRoutine(List<String> top3Concerns) {
-    List<String> morningSteps = ["Cleanse with a mild pH-balanced face wash"];
+  String _generateMorningRoutine(BuildContext context, List<String> top3Concerns) {
+    final l10n = context.l10n;
+    List<String> morningSteps = [l10n.cleanseMildFaceWash];
     for (String concern in top3Concerns) {
       final severity = widget.indicators[concern]?['severity'] ?? 0;
       if (concern == 'Acne') {
         if (severity <= 30) {
-          morningSteps.add("Gentle Cleanser (Mild acne care) + Salicylic Acid 2x weekly");
+          morningSteps.add(l10n.acneMildMorning);
         } else if (severity <= 60) {
-          morningSteps.add("Salicylic Acid cleanser (Moderate breakout target) + Niacinamide serum");
+          morningSteps.add(l10n.acneModerateMorning);
         } else {
-          morningSteps.add("Gentle non-foaming wash (Severe acne - avoid active conflicts)");
+          morningSteps.add(l10n.acneSevereMorning);
         }
-      } else if (concern == 'Dark Circles') {
-        morningSteps.add("Apply Caffeine eye serum to reduce puffiness");
-        morningSteps.add("Hydration booster reminder (Drink 500ml water)");
+      } else if (concern == 'Dark Circles' || concern == 'Pigmentation' && !top3Concerns.contains('Dark Circles')) {
+        // map based on key
+        if (concern == 'Dark Circles') {
+          morningSteps.add(l10n.darkCirclesMorning1);
+          morningSteps.add(l10n.darkCirclesMorning2);
+        } else {
+          morningSteps.add(l10n.pigmentationMorning1);
+          morningSteps.add(l10n.pigmentationMorning2);
+        }
       } else if (concern == 'Pigmentation') {
-        morningSteps.add("Vitamin C serum (antioxidant shield)");
-        morningSteps.add("Daily SPF 50+ broad-spectrum sunscreen");
+        morningSteps.add(l10n.pigmentationMorning1);
+        morningSteps.add(l10n.pigmentationMorning2);
       } else if (concern == 'Redness') {
-        morningSteps.add("Barrier repair moisturizer (avoid harsh exfoliants)");
-        morningSteps.add("Centella / Ceramide calming products");
+        morningSteps.add(l10n.rednessMorning1);
+        morningSteps.add(l10n.rednessMorning2);
       } else if (concern == 'Texture') {
-        morningSteps.add("Gentle exfoliation (mild enzymatic scrub)");
-        morningSteps.add("Hydration support serum");
+        morningSteps.add(l10n.textureMorning1);
+        morningSteps.add(l10n.textureMorning2);
       }
     }
     return morningSteps.asMap().entries.map((e) => "${e.key + 1}. ${e.value}").join("\n");
   }
 
-  String _generateNightRoutine(List<String> top3Concerns) {
-    List<String> nightSteps = ["Thorough double cleanse"];
+  String _generateNightRoutine(BuildContext context, List<String> top3Concerns) {
+    final l10n = context.l10n;
+    List<String> nightSteps = [l10n.doubleCleanse];
     for (String concern in top3Concerns) {
       final severity = widget.indicators[concern]?['severity'] ?? 0;
       if (concern == 'Acne') {
         if (severity <= 30) {
-          nightSteps.add("Salicylic Acid 2x weekly (Spot treatment)");
+          nightSteps.add(l10n.acneMildNight);
         } else if (severity <= 60) {
-          nightSteps.add("Niacinamide serum (Soothes inflammation)");
+          nightSteps.add(l10n.acneModerateNight);
         } else {
-          nightSteps.add("Dermatologist prescription consultation required (Severe acne)");
+          nightSteps.add(l10n.acneSevereNight);
         }
       } else if (concern == 'Dark Circles') {
-        nightSteps.add("Caffeine eye cream + Reduce blue-light screen exposure");
-        nightSteps.add("Increase sleep recommendation (min 8 hours)");
+        nightSteps.add(l10n.darkCirclesNight1);
+        nightSteps.add(l10n.darkCirclesNight2);
       } else if (concern == 'Pigmentation') {
-        nightSteps.add("Niacinamide (reduces hyperpigmentation transfer) + Brightening ingredients");
+        nightSteps.add(l10n.pigmentationNight);
       } else if (concern == 'Redness') {
-        nightSteps.add("Avoid harsh exfoliants (Calm active redness)");
-        nightSteps.add("Ceramide cream to rebuild barrier");
+        nightSteps.add(l10n.rednessNight1);
+        nightSteps.add(l10n.rednessNight2);
       } else if (concern == 'Texture') {
-        nightSteps.add("Retinol treatment to accelerate cell turnover");
+        nightSteps.add(l10n.textureNight);
       }
     }
     return nightSteps.asMap().entries.map((e) => "${e.key + 1}. ${e.value}").join("\n");
@@ -369,22 +400,23 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final sortedConcerns = widget.indicators.keys.toList()
       ..sort((a, b) => (widget.indicators[b]['severity'] as int).compareTo(widget.indicators[a]['severity'] as int));
     final top3Concerns = sortedConcerns.take(3).toList();
-    final dynamicSummary = _generateDynamicSummary();
-    final morningR = _generateMorningRoutine(top3Concerns);
-    final nightR = _generateNightRoutine(top3Concerns);
+    final dynamicSummary = _generateDynamicSummary(context);
+    final morningR = _generateMorningRoutine(context, top3Concerns);
+    final nightR = _generateNightRoutine(context, top3Concerns);
 
-    String badgeText = "Healthy";
+    String badgeText = l10n.healthy;
     if (widget.score >= 88) {
-      badgeText = "Healthy";
+      badgeText = l10n.healthy;
     } else if (_previousScore != null && widget.score > _previousScore!) {
-      badgeText = "Improving";
+      badgeText = l10n.improving;
     } else if (widget.score >= 68) {
-      badgeText = "Needs Attention";
+      badgeText = l10n.needsAttention;
     } else {
-      badgeText = "High Concern";
+      badgeText = l10n.highConcern;
     }
     final activeDetails = widget.indicators[_activeConcern];
     final bool hasLocalFile = widget.imagePath.isNotEmpty && File(widget.imagePath).existsSync();
@@ -417,9 +449,9 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                           },
                         ),
                         Column(
-                          children: const [
+                          children: [
                             Text(
-                              'Scan Results',
+                              l10n.scanResults,
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -429,7 +461,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                             ),
                             SizedBox(height: 2),
                             Text(
-                              'AI Analysis Report',
+                              l10n.aiAnalysisReport,
                               style: TextStyle(
                                 fontSize: 12,
                                 color: AppColors.textSecondary,
@@ -459,7 +491,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
+                                Text(
                                   'Skin Score Indicator',
                                   style: TextStyle(
                                     fontSize: 13,
@@ -481,7 +513,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                                       ),
                                     ),
                                     const SizedBox(width: 4),
-                                    const Text(
+                                    Text(
                                       '/ 100',
                                       style: TextStyle(
                                         fontSize: 15,
@@ -526,7 +558,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                             alignment: Alignment.center,
                             children: [
                               SizedBox(
-                                height: 80,
+                                height: 10.h,
                                 width: 80,
                                 child: CircularProgressIndicator(
                                   value: widget.score / 100.0,
@@ -547,8 +579,8 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                                     ),
                                   ),
                                   Text(
-                                    _getSeverityLabel(100 - widget.score),
-                                    style: const TextStyle(
+                                    _getSeverityLabel(context, 100 - widget.score),
+                                    style: TextStyle(
                                       fontSize: 9,
                                       color: AppColors.textSecondary,
                                       fontWeight: FontWeight.bold,
@@ -599,8 +631,8 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text(
-                                      'Before vs After Trend',
+                                    Text(
+                                      l10n.beforeVsAfterTrend,
                                       style: TextStyle(
                                         fontSize: 13,
                                         fontWeight: FontWeight.bold,
@@ -610,9 +642,9 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                                     const SizedBox(height: 4),
                                     Text(
                                       _previousScore != null
-                                          ? 'Skin score changed by ${widget.score - _previousScore! >= 0 ? '+' : ''}${widget.score - _previousScore!} points compared to previous scan score of $_previousScore.'
-                                          : 'Initial baseline report. Scans saved in history will calculate comparison score trends.',
-                                      style: const TextStyle(
+                                          ? l10n.trendComparison.replaceAll('{value}', '${widget.score - _previousScore! >= 0 ? "+" : ""}${widget.score - _previousScore!}').replaceAll('{prev}', '$_previousScore')
+                                          : l10n.initialBaselineReport,
+                                      style: TextStyle(
                                         fontSize: 12,
                                         color: AppColors.textSecondary,
                                         height: 1.3,
@@ -630,8 +662,8 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'Indicator Severity Details',
+                        Text(
+                          l10n.indicatorSeverityDetails,
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -639,8 +671,8 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                           ),
                         ),
                         Text(
-                          '${widget.indicators.length} analyzed',
-                          style: const TextStyle(
+                          l10n.analyzedCount.replaceAll('{count}', '${widget.indicators.length}'),
+                          style: TextStyle(
                             fontSize: 13,
                             color: AppColors.primary,
                             fontWeight: FontWeight.bold,
@@ -656,7 +688,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                         // Viewport image showing real face coordinates
                         Container(
                           width: 160,
-                          height: 220,
+                          height: 25.h,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(22),
                             border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
@@ -694,7 +726,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                                           });
                                         },
                                         child: Container(
-                                          height: 24,
+                                          height: 3.h,
                                           width: 24,
                                           alignment: Alignment.center,
                                           child: Stack(
@@ -703,7 +735,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                                               if (isSelected)
                                                 AnimatedContainer(
                                                   duration: const Duration(milliseconds: 300),
-                                                  height: 22,
+                                                  height: 2.7.h,
                                                   width: 22,
                                                   decoration: BoxDecoration(
                                                     shape: BoxShape.circle,
@@ -711,7 +743,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                                                   ),
                                                 ),
                                               Container(
-                                                height: 10,
+                                                height: 1.2.h,
                                                 width: 10,
                                                 decoration: BoxDecoration(
                                                   shape: BoxShape.circle,
@@ -738,7 +770,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                         // Severity Progress list
                         Expanded(
                           child: SizedBox(
-                            height: 220,
+                            height: 25.h,
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: widget.indicators.keys.map((key) {
@@ -769,7 +801,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                                         Row(
                                           children: [
                                             Container(
-                                              height: 6,
+                                              height: 0.8.h,
                                               width: 6,
                                               decoration: BoxDecoration(
                                                 shape: BoxShape.circle,
@@ -779,7 +811,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                                             const SizedBox(width: 6),
                                             Expanded(
                                               child: Text(
-                                                key,
+                                                _getConcernLabel(context, key),
                                                 style: TextStyle(
                                                   fontSize: 12,
                                                   fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
@@ -865,11 +897,11 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
-                            children: const [
+                            children: [
                               Icon(Icons.priority_high, color: AppColors.primary, size: 16),
                               SizedBox(width: 8),
                               Text(
-                                'Primary Concerns Mapped',
+                                l10n.primaryConcernsMapped,
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
@@ -896,7 +928,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Text(
-                                      concern,
+                                      _getConcernLabel(context, concern),
                                       style: TextStyle(
                                         color: markerColor,
                                         fontSize: 11,
@@ -910,7 +942,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          'Severity: $severity% • ${_getSeverityLabel(severity)}',
+                                          l10n.severityDetailPrefix.replaceAll('{value}', '$severity').replaceAll('{label}', _getSeverityLabel(context, severity)),
                                           style: const TextStyle(
                                             color: Colors.white70,
                                             fontSize: 11,
@@ -920,7 +952,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                                         const SizedBox(height: 2),
                                         Text(
                                           data['desc'],
-                                          style: const TextStyle(
+                                          style: TextStyle(
                                             color: AppColors.textSecondary,
                                             fontSize: 12,
                                             height: 1.3,
@@ -950,11 +982,11 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Row(
-                            children: const [
+                            children: [
                               Icon(Icons.auto_awesome, color: AppColors.primary, size: 16),
                               SizedBox(width: 8),
                               Text(
-                                'AI Summary',
+                                l10n.aiSummaryTitle,
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
@@ -966,7 +998,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                           const SizedBox(height: 10),
                           Text(
                             dynamicSummary,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 13,
                               color: AppColors.textSecondary,
                               height: 1.4,
@@ -978,8 +1010,8 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                     const SizedBox(height: 24),
 
                     // Daily Routine Suggestions
-                    const Text(
-                      'Daily Routine Suggestions',
+                    Text(
+                      l10n.dailyRoutineSuggestions,
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -990,12 +1022,12 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
 
                     _buildRoutineCard(
                       Icons.wb_sunny_outlined,
-                      'Morning Routine',
+                      l10n.morningRoutine,
                       morningR,
                     ),
                     _buildRoutineCard(
                       Icons.nights_stay_outlined,
-                      'Night Routine',
+                      l10n.nightRoutine,
                       nightR,
                     ),
                     const SizedBox(height: 24),
@@ -1005,7 +1037,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                       children: [
                         Expanded(
                           child: SizedBox(
-                            height: 52,
+                            height: 6.h,
                             child: OutlinedButton(
                               onPressed: () {
                                 HapticFeedback.lightImpact();
@@ -1016,14 +1048,14 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                                 backgroundColor: Colors.white.withValues(alpha: 0.02),
                               ),
-                              child: const Text('Scan Again', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                              child: Text(l10n.scanAgain, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                             ),
                           ),
                         ),
                         const SizedBox(width: 14),
                         Expanded(
                           child: Container(
-                            height: 52,
+                            height: 6.h,
                             decoration: BoxDecoration(
                               gradient: AppColors.primaryGradient,
                               borderRadius: BorderRadius.circular(24),
@@ -1035,7 +1067,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                                 shadowColor: Colors.transparent,
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                               ),
-                              child: const Text('Save Report', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                              child: Text(l10n.saveReport, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                             ),
                           ),
                         ),
@@ -1053,7 +1085,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
             Positioned.fill(
               child: Container(
                 color: Colors.black.withValues(alpha: 0.5),
-                child: const Center(
+                child: Center(
                   child: CircularProgressIndicator(color: AppColors.primary),
                 ),
               ),
@@ -1071,17 +1103,17 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Container(
-                          height: 90,
+                          height: 11.h,
                           width: 90,
-                          decoration: const BoxDecoration(
+                          decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             gradient: AppColors.primaryGradient,
                           ),
                           child: const Icon(Icons.check, size: 54, color: Colors.white),
                         ),
                         const SizedBox(height: 24),
-                        const Text(
-                          'Report Saved!',
+                        Text(
+                          l10n.reportSaved,
                           style: TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
@@ -1089,8 +1121,8 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                           ),
                         ),
                         const SizedBox(height: 8),
-                        const Text(
-                          'Added to your scan history log',
+                        Text(
+                          l10n.addedToHistory,
                           style: TextStyle(
                             fontSize: 14,
                             color: AppColors.textSecondary,
@@ -1133,7 +1165,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                   const SizedBox(height: 8),
                   Text(
                     instructions,
-                    style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.5),
+                    style: TextStyle(fontSize: 12, color: AppColors.textSecondary, height: 1.5),
                   ),
                 ],
               ),

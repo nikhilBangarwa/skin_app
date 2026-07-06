@@ -4,8 +4,11 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
-import '../../theme/colors.dart';
-import '../../theme/floating_gradients.dart';
+import '../../core/theme/colors.dart';
+import 'package:sizer/sizer.dart';
+import '../../core/theme/spacing.dart';
+import '../../core/localization/app_localizations.dart';
+import '../../core/theme/floating_gradients.dart';
 import 'result_screen.dart';
 
 class ProcessingScreen extends StatefulWidget {
@@ -18,12 +21,15 @@ class ProcessingScreen extends StatefulWidget {
 
 class _ProcessingScreenState extends State<ProcessingScreen> {
   int _currentStep = 0;
-  final List<String> _steps = [
-    'Validating Image Quality...',
-    'Detecting Face Structure...',
-    'Analyzing Skin Health Markers...',
-    'Generating Medical Report...',
-  ];
+  List<String> _getSteps(BuildContext context) {
+    final l10n = context.l10n;
+    return [
+      l10n.stepQuality,
+      l10n.stepStructure,
+      l10n.stepMarkers,
+      l10n.stepReport,
+    ];
+  }
 
   @override
   void initState() {
@@ -32,6 +38,7 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
   }
 
   Future<void> _runDiagnostics() async {
+    final l10n = context.l10n;
     try {
       // Step 0: Image Quality Checks (Darkness, Blur, Overexposure)
       setState(() {
@@ -52,7 +59,7 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
       // Read colors at regular offsets
       final ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.rawRgba);
       if (byteData == null) {
-        _showError("Unable to analyze image format. Please try again.");
+        _showError(l10n.unableToAnalyzeFormat);
         return;
       }
 
@@ -84,17 +91,17 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
       // Validation Rules:
       // Dark Check
       if (avgLuminance < 45) {
-        _showError("Image too dark. Please scan in a well-lit environment.");
+        _showError(l10n.imageTooDarkError);
         return;
       }
       // Overexposure Check
       if (avgLuminance > 235) {
-        _showError("Image too bright. Please avoid harsh, direct light sources.");
+        _showError(l10n.imageTooBrightError);
         return;
       }
       // Blur Check
       if (contrastVariance < 150) {
-        _showError("Blurry image detected. Please hold your camera steady.");
+        _showError(l10n.imageBlurryError);
         return;
       }
 
@@ -153,13 +160,13 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
 
       if (validFaces.isEmpty) {
         faceDetector.close();
-        _showError("Face not clearly visible. Please upload a clear front-facing selfie.");
+        _showError(l10n.noFaceDetected);
         return;
       }
 
       if (validFaces.length > 1) {
         faceDetector.close();
-        _showError("Only one face should be visible in the photo.");
+        _showError(l10n.multipleFacesDetected);
         return;
       }
 
@@ -171,7 +178,7 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
       // Face occupies at least 25% of image area
       if (faceRatio < 0.25) {
         faceDetector.close();
-        _showError("Face not clearly visible. Please upload a clear front-facing selfie.");
+        _showError(l10n.noFaceDetected);
         return;
       }
 
@@ -188,7 +195,7 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
           noseLandmark == null ||
           (mouthBottomLandmark == null && mouthLeftLandmark == null && mouthRightLandmark == null)) {
         faceDetector.close();
-        _showError("Face not clearly visible. Please upload a clear front-facing selfie.");
+        _showError(l10n.noFaceDetected);
         return;
       }
 
@@ -198,7 +205,7 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
       if (leftEyeOpen != null && rightEyeOpen != null) {
         if (leftEyeOpen < 0.35 || rightEyeOpen < 0.35) {
           faceDetector.close();
-          _showError("Face not clearly visible. Please upload a clear front-facing selfie.");
+          _showError(l10n.noFaceDetected);
           return;
         }
       }
@@ -300,7 +307,7 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
         'Acne': {
           'severity': acneSeverity,
           'color': '#FF7C7C',
-          'desc': 'Acne severity index is at $acneSeverity%. Mild congestion localized near the forehead and chin coordinates.',
+          'desc': l10n.indicatorAcneDesc.replaceAll('{value}', '$acneSeverity'),
           'spots': [
             {'x': 0.50, 'y': foreheadY},
             {'x': lx, 'y': ly},
@@ -310,7 +317,7 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
         'Dark Circles': {
           'severity': darkCirclesSeverity,
           'color': '#BA7CFF',
-          'desc': 'Dark circle markers detected at $darkCirclesSeverity%. Prominent under-eye vascular pigments mapped.',
+          'desc': l10n.indicatorDarkCirclesDesc.replaceAll('{value}', '$darkCirclesSeverity'),
           'spots': [
             {'x': lex, 'y': (ley + 0.04).clamp(0.0, 1.0)},
             {'x': rex, 'y': (rey + 0.04).clamp(0.0, 1.0)},
@@ -319,7 +326,7 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
         'Pigmentation': {
           'severity': pigmentationSeverity,
           'color': '#FFAE7C',
-          'desc': 'Pigmentation distribution score is $pigmentationSeverity%. UV exposure markers observed around cheek area.',
+          'desc': l10n.indicatorPigmentationDesc.replaceAll('{value}', '$pigmentationSeverity'),
           'spots': [
             {'x': lx - 0.04, 'y': ly + 0.02},
             {'x': rx + 0.04, 'y': ry + 0.02},
@@ -329,7 +336,7 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
         'Redness': {
           'severity': rednessSeverity,
           'color': '#FF7C93',
-          'desc': 'Vascular redness activity is $rednessSeverity%. High blood flow detected around nose and inner cheeks.',
+          'desc': l10n.indicatorRednessDesc.replaceAll('{value}', '$rednessSeverity'),
           'spots': [
             {'x': nx, 'y': ny},
             {'x': lx + 0.02, 'y': ly + 0.04},
@@ -339,7 +346,7 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
         'Texture': {
           'severity': textureSeverity,
           'color': '#7CFF93',
-          'desc': 'Micro-texture variance is $textureSeverity%. Minor pore congestion detected across overall central facial region.',
+          'desc': l10n.indicatorTextureDesc.replaceAll('{value}', '$textureSeverity'),
           'spots': [
             {'x': nx, 'y': (ny + ly) / 2},
           ],
@@ -360,7 +367,7 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
             score: overallScore,
             confidence: confidenceScore,
             indicators: indicators,
-            aiSummary: _getSummaryText(overallScore),
+            aiSummary: _getSummaryText(context, overallScore),
           ),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(opacity: animation, child: child);
@@ -368,7 +375,7 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
         ),
       );
     } catch (e) {
-      _showError("An error occurred during image processing: $e");
+      _showError("${l10n.errorProcessingImage}$e");
     }
   }
 
@@ -380,17 +387,19 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
     return noseYfrac + 0.15;
   }
 
-  String _getSummaryText(int score) {
+  String _getSummaryText(BuildContext context, int score) {
+    final l10n = context.l10n;
     if (score >= 88) {
-      return "Your skin is exceptionally healthy with superior moisture barrier values. Focus on maintaining preventative sunscreen layers and light humectants.";
+      return l10n.summaryExcellent;
     } else if (score >= 78) {
-      return "Your skin shows overall balanced health with minor concerns. Dark circles and redness are your primary areas of attention to improve cellular elasticity.";
+      return l10n.summaryGood;
     } else {
-      return "Moderate congestion and localized inflammation observed. Focus on calming barrier repair, anti-inflammatory routines, and avoid abrasive physical scrubs.";
+      return l10n.summaryAttention;
     }
   }
 
   void _showError(String message) {
+    final l10n = context.l10n;
     if (!mounted) return;
     showDialog(
       context: context,
@@ -401,13 +410,13 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
           borderRadius: BorderRadius.circular(20),
           side: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
         ),
-        title: const Text(
-          "Validation Failed",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        title: Text(
+          l10n.validationFailedTitle,
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         content: Text(
           message,
-          style: const TextStyle(color: AppColors.textSecondary),
+          style: TextStyle(color: AppColors.textSecondary),
         ),
         actions: [
           TextButton(
@@ -418,9 +427,9 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
             style: TextButton.styleFrom(
               foregroundColor: AppColors.primary,
             ),
-            child: const Text(
-              "Try Again",
-              style: TextStyle(fontWeight: FontWeight.bold),
+            child: Text(
+              l10n.tryAgainButton,
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -430,12 +439,13 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Scaffold(
       backgroundColor: AppColors.background,
       body: AmbientGlowBackground(
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.all(28.0),
+            padding: EdgeInsets.all(AppSpacing.lg),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -445,14 +455,14 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
                     alignment: Alignment.center,
                     children: [
                       Container(
-                        height: 100,
-                        width: 100,
+                        height: 13.h,
+                        width: 13.h,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: AppColors.card,
                           border: AppColors.glassBorder,
                         ),
-                        child: const Padding(
+                        child: Padding(
                           padding: EdgeInsets.all(12.0),
                           child: CircularProgressIndicator(
                             strokeWidth: 3,
@@ -460,59 +470,59 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
                           ),
                         ),
                       ),
-                      const Icon(
+                      Icon(
                         Icons.blur_on,
                         color: AppColors.primary,
-                        size: 38,
+                        size: 26.sp,
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 48),
-                const Text(
-                  'Running AI Diagnostics...',
+                SizedBox(height: AppSpacing.xl),
+                Text(
+                  l10n.runningDiagnostics,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 24,
+                    fontSize: 18.sp,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                     letterSpacing: -0.5,
                   ),
                 ),
-                const SizedBox(height: 8),
-                const Text(
-                  'SkinAI is scanning lighting, sharpness, orientation, and landmarks.',
+                SizedBox(height: AppSpacing.sm),
+                Text(
+                  l10n.diagnosticsSubtitle,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 11.sp,
                     color: AppColors.textSecondary,
                   ),
                 ),
-                const SizedBox(height: 48),
+                SizedBox(height: AppSpacing.xl),
                 
                 // Animated checklist
                 Container(
-                  padding: const EdgeInsets.all(20),
+                  padding: EdgeInsets.all(AppSpacing.md),
                   decoration: BoxDecoration(
                     color: AppColors.card.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(24),
                     border: AppColors.glassBorder,
                   ),
                   child: Column(
-                    children: List.generate(_steps.length, (index) {
+                    children: List.generate(_getSteps(context).length, (index) {
                       final isCompleted = _currentStep > index;
                       final isActive = _currentStep == index;
 
                       return Padding(
                         padding: EdgeInsets.only(
-                          bottom: index == _steps.length - 1 ? 0 : 16.0,
+                          bottom: index == _getSteps(context).length - 1 ? 0 : 16.0,
                         ),
                         child: Row(
                           children: [
                             AnimatedContainer(
                               duration: const Duration(milliseconds: 300),
-                              height: 24,
-                              width: 24,
+                              height: 3.h,
+                              width: 3.h,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 color: isCompleted
@@ -531,7 +541,7 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
                                 child: isCompleted
                                     ? const Icon(Icons.check, size: 14, color: Colors.white)
                                     : (isActive
-                                        ? const SizedBox(
+                                        ? SizedBox(
                                             height: 10,
                                             width: 10,
                                             child: CircularProgressIndicator(
@@ -540,8 +550,8 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
                                             ),
                                           )
                                         : Container(
-                                            height: 6,
-                                            width: 6,
+                                            height: 0.8.h,
+                                            width: 0.8.h,
                                             decoration: const BoxDecoration(
                                               shape: BoxShape.circle,
                                               color: Colors.white24,
@@ -549,11 +559,11 @@ class _ProcessingScreenState extends State<ProcessingScreen> {
                                           )),
                               ),
                             ),
-                            const SizedBox(width: 16),
+                            SizedBox(width: AppSpacing.md),
                             Text(
-                              _steps[index],
+                              _getSteps(context)[index],
                               style: TextStyle(
-                                fontSize: 15,
+                                fontSize: 12.sp,
                                 fontWeight:
                                     isActive || isCompleted ? FontWeight.bold : FontWeight.w500,
                                 color: isCompleted

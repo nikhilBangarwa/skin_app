@@ -2,12 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+import 'package:sizer/sizer.dart';
 import 'firebase_options.dart';
-import 'screens/auth/login_screen.dart';
-import 'screens/onboarding/onboarding_screen.dart';
-import 'screens/home/home_screen.dart';
-import 'screens/splash/splash_screen.dart';
-import 'theme/colors.dart';
+import 'core/theme/colors.dart';
+import 'core/theme/app_theme.dart';
+import 'core/providers/theme_provider.dart';
+import 'core/providers/localization_provider.dart';
+import 'core/services/notification_service.dart';
+import 'core/localization/app_localizations.dart';
+import 'features/auth/login_screen.dart';
+import 'features/onboarding/onboarding_screen.dart';
+import 'features/home/home_screen.dart';
+import 'features/splash/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,7 +24,16 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => LocalizationProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -25,38 +41,31 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Skin Companion',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.dark,
-        primaryColor: AppColors.primary,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: AppColors.primary,
-          primary: AppColors.primary,
-          surface: AppColors.surface,
-          error: AppColors.error,
-          brightness: Brightness.dark,
-        ),
-        scaffoldBackgroundColor: AppColors.background,
-        // Configures standard text theme to align with premium look
-        textTheme: const TextTheme(
-          displayLarge: TextStyle(fontFamily: 'Quicksand', color: AppColors.textPrimary),
-          titleLarge: TextStyle(fontFamily: 'Quicksand', color: AppColors.textPrimary),
-          bodyLarge: TextStyle(fontFamily: 'Quicksand', color: AppColors.textPrimary),
-          bodyMedium: TextStyle(fontFamily: 'Quicksand', color: AppColors.textSecondary),
-        ),
-        // Premium card styling
-        cardTheme: CardThemeData(
-          color: AppColors.surface,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-        ),
-      ),
-      home: const SplashScreen(),
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final locProvider = Provider.of<LocalizationProvider>(context);
+
+    // Sync static AppColors colors to match the theme before rebuilding the widget tree
+    themeProvider.syncColors();
+
+    return Sizer(
+      builder: (context, orientation, deviceType) {
+        return MaterialApp(
+          title: 'Skin Companion',
+          debugShowCheckedModeBanner: false,
+          
+          // Themes Setup (Light & Dark Mode configs)
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: themeProvider.themeMode,
+
+          // Localization Setup
+          locale: locProvider.locale,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+
+          home: const SplashScreen(),
+        );
+      },
     );
   }
 }
@@ -72,7 +81,7 @@ class AuthRouter extends StatelessWidget {
       builder: (context, authSnapshot) {
         // If Auth connection is still loading
         if (authSnapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
+          return Scaffold(
             backgroundColor: AppColors.background,
             body: Center(
               child: CircularProgressIndicator(color: AppColors.primary),
@@ -89,7 +98,7 @@ class AuthRouter extends StatelessWidget {
             builder: (context, firestoreSnapshot) {
               // While checking user's document in Firestore
               if (firestoreSnapshot.connectionState == ConnectionState.waiting) {
-                return const Scaffold(
+                return Scaffold(
                   backgroundColor: AppColors.background,
                   body: Center(
                     child: CircularProgressIndicator(color: AppColors.primary),

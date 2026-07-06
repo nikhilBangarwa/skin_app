@@ -2,7 +2,14 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../theme/colors.dart';
+import 'package:provider/provider.dart';
+import '../../core/theme/colors.dart';
+import 'package:sizer/sizer.dart';
+import '../../core/theme/spacing.dart';
+import '../../core/providers/localization_provider.dart';
+import '../../core/localization/app_localizations.dart';
+import '../permissions/notification_permission_screen.dart';
+import '../language/language_selection_screen.dart';
 import '../home/home_screen.dart';
 import '../onboarding/onboarding_screen.dart';
 import '../auth/login_screen.dart';
@@ -54,9 +61,9 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
     _mainController.forward();
 
-    // Run auth check and display splash screen for at least 2.5 seconds
+    // Check routing path and enforce minimum 2.5s display duration
     Future.wait([
-      _checkAuth(),
+      _determineNextScreen(),
       Future.delayed(const Duration(milliseconds: 2500)),
     ]).then((_) {
       if (mounted) {
@@ -85,6 +92,27 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
         angle: random.nextDouble() * 2 * pi,
       );
     });
+  }
+
+  Future<void> _determineNextScreen() async {
+    final locProvider = Provider.of<LocalizationProvider>(context, listen: false);
+    
+    // 1. Check Notification Permission Screen Status
+    final bool notificationShown = locProvider.notificationPermissionShown;
+    if (!notificationShown) {
+      _nextScreen = const NotificationPermissionScreen();
+      return;
+    }
+
+    // 2. Check Language Selector Screen Status
+    final bool languageSelected = locProvider.languageSelected;
+    if (!languageSelected) {
+      _nextScreen = const LanguageSelectionScreen();
+      return;
+    }
+
+    // 3. Fallback to standard Auth Routing Check
+    await _checkAuth();
   }
 
   Future<void> _checkAuth() async {
@@ -125,30 +153,20 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
           // Background subtle gradients
           Positioned.fill(
             child: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Color(0xFF0F1115),
-                    Color(0xFF151922),
-                    Color(0xFF1A1D24),
-                  ],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-              ),
+              color: AppColors.background,
             ),
           ),
           
           // Radial glow centered behind the logo
           Center(
             child: Container(
-              width: 250,
-              height: 250,
+              width: 60.w,
+              height: 60.w,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    const Color(0xFFF4A7A1).withValues(alpha: 0.08),
+                    AppColors.primary.withValues(alpha: 0.08),
                     Colors.transparent,
                   ],
                   radius: 0.8,
@@ -180,65 +198,68 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                   children: [
                     // Premium Logo Card with Rose Glow
                     Container(
-                      height: 110,
-                      width: 110,
+                      height: 14.h,
+                      width: 14.h,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: const Color(0xFFF4A7A1).withValues(alpha: 0.35),
+                          color: AppColors.primary.withValues(alpha: 0.35),
                           width: 1.5,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFFF4A7A1).withValues(alpha: 0.28),
+                            color: AppColors.primary.withValues(alpha: 0.28),
                             blurRadius: 35,
                             spreadRadius: 3,
                           ),
                         ],
                       ),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(55),
+                        borderRadius: BorderRadius.circular(7.h),
                         child: Image.asset(
                           'assets/images/logo.png',
                           fit: BoxFit.cover,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 32),
+                    SizedBox(height: AppSpacing.xl),
                     
                     // Brand Typography
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
+                      children: [
                         Text(
                           'Skin',
                           style: TextStyle(
-                            fontSize: 38,
+                            fontFamily: 'Quicksand',
+                            fontSize: 26.sp,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            color: AppColors.textPrimary,
                             letterSpacing: -1.0,
                           ),
                         ),
                         Text(
                           'AI',
                           style: TextStyle(
-                            fontSize: 38,
+                            fontFamily: 'Quicksand',
+                            fontSize: 26.sp,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFFF4A7A1),
+                            color: AppColors.primary,
                             letterSpacing: -1.0,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: AppSpacing.md),
                     
                     // Tagline
                     Text(
-                      'AI POWERED SKIN ANALYSIS',
+                      context.l10n.splashTagline,
                       style: TextStyle(
-                        fontSize: 12,
+                        fontFamily: 'Quicksand',
+                        fontSize: 9.sp,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white.withValues(alpha: 0.45),
+                        color: AppColors.textSecondary.withValues(alpha: 0.65),
                         letterSpacing: 2.0,
                       ),
                     ),
@@ -281,11 +302,9 @@ class _ParticlesPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final paint = Paint();
     for (var p in particles) {
-      // Move particle slowly in the direction of its angle
       p.xRatio += cos(p.angle) * p.speed * 0.0006;
       p.yRatio += sin(p.angle) * p.speed * 0.0006;
 
-      // Wrap around bounds
       if (p.xRatio < 0) p.xRatio = 1.0;
       if (p.xRatio > 1.0) p.xRatio = 0.0;
       if (p.yRatio < 0) p.yRatio = 1.0;
@@ -294,7 +313,7 @@ class _ParticlesPainter extends CustomPainter {
       final dx = p.xRatio * size.width;
       final dy = p.yRatio * size.height;
 
-      paint.color = const Color(0xFFF4A7A1).withValues(alpha: p.opacity);
+      paint.color = AppColors.primary.withValues(alpha: p.opacity);
       canvas.drawCircle(Offset(dx, dy), p.size, paint);
     }
   }

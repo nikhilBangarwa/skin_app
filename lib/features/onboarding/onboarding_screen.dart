@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../theme/colors.dart';
-import '../../theme/floating_gradients.dart';
+import '../../core/theme/colors.dart';
+import 'package:sizer/sizer.dart';
+import '../../core/theme/spacing.dart';
+import '../../core/localization/app_localizations.dart';
+import '../../core/theme/floating_gradients.dart';
 import '../home/home_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -14,6 +17,57 @@ class OnboardingScreen extends StatefulWidget {
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> with TickerProviderStateMixin {
+
+  String _getGenderLabel(BuildContext context, String gender) {
+    if (gender == 'Male') return context.l10n.genderMale;
+    if (gender == 'Female') return context.l10n.genderFemale;
+    return context.l10n.genderOther;
+  }
+
+  String _getSkinTypeLabel(BuildContext context, String label) {
+    if (label == 'Dry') return context.l10n.skinTypeDry;
+    if (label == 'Oily') return context.l10n.skinTypeOily;
+    if (label == 'Combination') return context.l10n.skinTypeCombination;
+    if (label == 'Normal') return context.l10n.skinTypeNormal;
+    return label;
+  }
+
+  String _getSkinTypeSub(BuildContext context, String label) {
+    if (label == 'Dry') return context.l10n.skinTypeDryDesc;
+    if (label == 'Oily') return context.l10n.skinTypeOilyDesc;
+    if (label == 'Combination') return context.l10n.skinTypeCombinationDesc;
+    if (label == 'Normal') return context.l10n.skinTypeNormalDesc;
+    return '';
+  }
+
+  String _getConcernTranslation(BuildContext context, String key) {
+    switch (key) {
+      case 'Acne': return context.l10n.concernAcne;
+      case 'Dullness': return context.l10n.concernDullness;
+      case 'Wrinkles': return context.l10n.concernWrinkles;
+      case 'Redness': return context.l10n.concernRedness;
+      case 'Pores': return context.l10n.concernPores;
+      case 'Uneven Tone': return context.l10n.concernUnevenTone;
+      case 'Fine Lines': return context.l10n.concernWrinkles;
+      case 'Dark Spots': return context.l10n.concernDarkCircles;
+      default: return key;
+    }
+  }
+
+  String _getStepLabel(BuildContext context, int page) {
+    if (page == 0) return context.l10n.step1Title;
+    if (page == 1) return context.l10n.step2Title;
+    if (page == 2) return context.l10n.step3Title;
+    return context.l10n.step4Title;
+  }
+
+  String _getStepProgressText(BuildContext context, int page) {
+    if (page == 0) return context.l10n.step1Text;
+    if (page == 1) return context.l10n.step2Text;
+    if (page == 2) return context.l10n.step3Text;
+    return context.l10n.step4Text;
+  }
+
   final PageController _pageController = PageController();
   final _formKey = GlobalKey<FormState>();
 
@@ -68,8 +122,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
     'Fine Lines'
   ];
 
-  // Step Labels
-  final List<String> _stepLabels = ['Personal Info', 'Skin Type', 'Concerns', 'Summary'];
+
 
   // Calibration checklist states
   bool _profileCreated = false;
@@ -229,7 +282,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
   void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message, style: const TextStyle(color: Colors.white)),
+        content: Text(message, style: TextStyle(color: Theme.of(context).colorScheme.onError)),
         backgroundColor: AppColors.error,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -248,33 +301,33 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
             children: [
               Column(
                 children: [
-                  const SizedBox(height: 20),
+                  SizedBox(height: AppSpacing.md),
 
                   // Top Branding & Logo
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Image.asset(
                           'assets/images/logo.png',
-                          height: 28,
-                          width: 28,
+                          height: 4.h,
+                          width: 4.h,
                         ),
-                        const SizedBox(width: 8),
-                        const Text(
+                        SizedBox(width: AppSpacing.sm),
+                        Text(
                           'Skin',
                           style: TextStyle(
-                            fontSize: 22,
+                            fontSize: 16.sp,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                             letterSpacing: -0.5,
                           ),
                         ),
-                        const Text(
+                        Text(
                           'AI',
                           style: TextStyle(
-                            fontSize: 22,
+                            fontSize: 16.sp,
                             fontWeight: FontWeight.bold,
                             color: AppColors.primary,
                             letterSpacing: -0.5,
@@ -283,11 +336,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: AppSpacing.md),
 
                   // Progress Bar & Labels
                   _buildProgressIndicator(),
-                  const SizedBox(height: 16),
+                  SizedBox(height: AppSpacing.md),
 
                   // Step Pages
                   Expanded(
@@ -331,33 +384,33 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                _stepLabels[_currentPage],
-                style: const TextStyle(
-                  fontSize: 14,
+                _getStepLabel(context, _currentPage),
+                style: TextStyle(
+                  fontSize: 11.sp,
                   fontWeight: FontWeight.bold,
                   color: AppColors.primary,
                 ),
               ),
               Text(
-                'Step ${_currentPage + 1} of 4',
-                style: const TextStyle(
-                  fontSize: 13,
+                _getStepProgressText(context, _currentPage),
+                style: TextStyle(
+                  fontSize: 10.sp,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textSecondary,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: AppSpacing.sm),
           Row(
             children: List.generate(4, (index) {
               final isPassed = index <= _currentPage;
               return Expanded(
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
-                  height: 5,
+                  height: 0.6.h,
                   margin: EdgeInsets.only(
-                    right: index == 3 ? 0 : 8,
+                    right: index == 3 ? 0 : AppSpacing.sm,
                   ),
                   decoration: BoxDecoration(
                     color: isPassed ? AppColors.primary : AppColors.divider,
@@ -375,7 +428,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
   Widget _buildStep1() {
     return _SlideFadeTransition(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
         child: Form(
           key: _formKey,
           child: Column(
@@ -400,11 +453,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
-                'Let\'s create your personalized skin profile',
+              Text(
+                context.l10n.welcomeSubtitle,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 11.sp,
                   color: AppColors.textSecondary,
                 ),
               ),
@@ -417,7 +470,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                   color: AppColors.card.withValues(alpha: 0.6),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: _isNameFocused ? const Color(0xFFE89A8D) : Colors.white.withValues(alpha: 0.08),
+                    color: _isNameFocused ? const Color(0xFFE89A8D) : AppColors.borderColor,
                     width: 1.5,
                   ),
                   boxShadow: _isNameFocused
@@ -433,13 +486,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                 child: TextFormField(
                   controller: _nameController,
                   focusNode: _nameFocusNode,
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                  style: TextStyle(color: AppColors.textPrimary, fontSize: 12.sp),
                   cursorColor: AppColors.primary,
                   decoration: InputDecoration(
-                    labelText: 'Preferred Name',
+                    labelText: context.l10n.preferredName,
                     labelStyle: TextStyle(
                       color: _isNameFocused ? const Color(0xFFE89A8D) : AppColors.textSecondary,
-                      fontSize: 14,
+                      fontSize: 11.sp,
                     ),
                     floatingLabelBehavior: FloatingLabelBehavior.auto,
                     prefixIcon: Icon(
@@ -466,7 +519,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                   color: AppColors.card.withValues(alpha: 0.6),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: _isAgeFocused ? const Color(0xFFE89A8D) : Colors.white.withValues(alpha: 0.08),
+                    color: _isAgeFocused ? const Color(0xFFE89A8D) : AppColors.borderColor,
                     width: 1.5,
                   ),
                   boxShadow: _isAgeFocused
@@ -484,13 +537,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                   focusNode: _ageFocusNode,
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                  style: TextStyle(color: AppColors.textPrimary, fontSize: 12.sp),
                   cursorColor: AppColors.primary,
                   decoration: InputDecoration(
-                    labelText: 'Age',
+                    labelText: context.l10n.ageLabel,
                     labelStyle: TextStyle(
                       color: _isAgeFocused ? const Color(0xFFE89A8D) : AppColors.textSecondary,
-                      fontSize: 14,
+                      fontSize: 11.sp,
                     ),
                     floatingLabelBehavior: FloatingLabelBehavior.auto,
                     prefixIcon: Icon(
@@ -515,10 +568,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
               const SizedBox(height: 28),
 
               // Gender Selection
-              const Text(
-                'Gender Identity',
+              Text(
+                context.l10n.genderIdentity,
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: 10.sp,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textSecondary,
                 ),
@@ -552,7 +605,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                           borderRadius: BorderRadius.circular(20),
                           border: isSelected
                               ? Border.all(color: const Color(0xFFE89A8D).withValues(alpha: 0.5), width: 1.0)
-                              : Border.all(color: Colors.white.withValues(alpha: 0.08), width: 1.0),
+                              : Border.all(color: AppColors.borderColor, width: 1.0),
                           boxShadow: isSelected
                               ? [
                             BoxShadow(
@@ -564,11 +617,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                               : [],
                         ),
                         child: Text(
-                          gender,
+                          _getGenderLabel(context, gender),
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: 11.sp,
                             fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                            color: isSelected ? Colors.white : AppColors.textSecondary,
+                            color: isSelected ? Theme.of(context).colorScheme.onPrimary : AppColors.textSecondary,
                           ),
                         ),
                       ),
@@ -587,24 +640,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
   Widget _buildStep2() {
     return _SlideFadeTransition(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: 20),
-            const Text(
-              'What is your skin type?',
+            Text(
+              context.l10n.selectSkinTypeTitle,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 28,
+                fontSize: 22.sp,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: AppColors.textPrimary,
                 letterSpacing: -0.5,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Select the profile that best matches your daily skin texture.',
+            Text(
+              context.l10n.selectSkinTypeSubtitle,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
@@ -640,7 +693,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                           color: isSelected ? AppColors.card : AppColors.card.withValues(alpha: 0.4),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: isSelected ? const Color(0xFFE89A8D) : Colors.white.withValues(alpha: 0.08),
+                            color: isSelected ? const Color(0xFFE89A8D) : AppColors.borderColor,
                             width: isSelected ? 1.5 : 1.0,
                           ),
                           boxShadow: isSelected
@@ -674,18 +727,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    type['label']!,
+                                    _getSkinTypeLabel(context, type['label']!),
                                     style: TextStyle(
-                                      fontSize: 16,
+                                      fontSize: 12.sp,
                                       fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                                      color: isSelected ? Colors.white : AppColors.textPrimary,
+                                      color: isSelected ? Theme.of(context).colorScheme.onPrimary : AppColors.textPrimary,
                                     ),
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    type['sub']!,
-                                    style: const TextStyle(
-                                      fontSize: 13,
+                                    _getSkinTypeSub(context, type['label']!),
+                                    style: TextStyle(
+                                      fontSize: 10.sp,
                                       color: AppColors.textSecondary,
                                     ),
                                   ),
@@ -699,9 +752,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                                   color: Color(0xFFE89A8D),
                                   shape: BoxShape.circle,
                                 ),
-                                child: const Icon(
+                                child: Icon(
                                   Icons.check,
-                                  color: Colors.white,
+                                  color: Theme.of(context).colorScheme.onPrimary,
                                   size: 14,
                                 ),
                               ),
@@ -723,24 +776,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
   Widget _buildStep3() {
     return _SlideFadeTransition(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: 20),
-            const Text(
-              'What are your primary concerns?',
+            Text(
+              context.l10n.selectConcernsTitle,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 28,
+                fontSize: 22.sp,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: AppColors.textPrimary,
                 letterSpacing: -0.5,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Select all that apply.',
+            Text(
+              context.l10n.selectConcernsSubtitle,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
@@ -791,15 +844,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            concern,
+                            _getConcernTranslation(context, concern),
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: 11.sp,
                               fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                              color: isSelected ? Colors.white : AppColors.textSecondary,
+                              color: isSelected ? Theme.of(context).colorScheme.onPrimary : AppColors.textSecondary,
                             ),
                           ),
                           if (isSelected) ...[
-                            const SizedBox(width: 8),
+                            SizedBox(width: AppSpacing.sm),
                             Container(
                               padding: const EdgeInsets.all(2),
                               decoration: const BoxDecoration(
@@ -835,24 +888,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
 
     return _SlideFadeTransition(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: 20),
-            const Text(
-              'Almost there!',
+            Text(
+              context.l10n.almostThere,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 28,
+                fontSize: 22.sp,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: AppColors.textPrimary,
                 letterSpacing: -0.5,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Review your details before we calibrate your AI profile.',
+            Text(
+              context.l10n.reviewProfileSub,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
@@ -867,7 +920,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
               decoration: BoxDecoration(
                 color: AppColors.card.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                border: Border.all(color: AppColors.borderColor),
                 boxShadow: AppColors.softShadow,
               ),
               child: Column(
@@ -899,7 +952,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: AppSpacing.md),
                   Text(
                     name.isNotEmpty ? name : 'Nikhil Bangarwa',
                     style: const TextStyle(
@@ -912,8 +965,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                   const SizedBox(height: 6),
                   Text(
                     '$gender - Age ${age.isNotEmpty ? age : '18'}',
-                    style: const TextStyle(
-                      fontSize: 14,
+                    style: TextStyle(
+                      fontSize: 11.sp,
                       color: AppColors.textSecondary,
                       fontWeight: FontWeight.w500,
                     ),
@@ -927,29 +980,29 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                     decoration: BoxDecoration(
                       color: AppColors.background.withValues(alpha: 0.7),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.04)),
+                      border: Border.all(color: AppColors.borderColor),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Your Profile Summary',
+                        Text(
+                          context.l10n.profileSummary,
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: 10.sp,
                             fontWeight: FontWeight.bold,
                             color: Color(0xFFE89A8D),
                             letterSpacing: 0.5,
                           ),
                         ),
-                        const SizedBox(height: 16),
-                        _buildSummaryRow('Skin Type', skinType.isNotEmpty ? skinType : 'Combination'),
-                        const Divider(color: Colors.white10, height: 24, thickness: 0.8),
+                        SizedBox(height: AppSpacing.md),
+                        _buildSummaryRow(context.l10n.step2Title, skinType.isNotEmpty ? _getSkinTypeLabel(context, skinType) : _getSkinTypeLabel(context, 'Combination')),
+                        Divider(color: AppColors.borderColor, height: 24, thickness: 0.8),
                         _buildSummaryRow(
-                          'Primary Concerns',
-                          _selectedConcerns.isNotEmpty ? _selectedConcerns.join(', ') : 'Acne, Dark Spots',
+                          context.l10n.step3Title,
+                          _selectedConcerns.isNotEmpty ? _selectedConcerns.map((c) => _getConcernTranslation(context, c)).join(', ') : '${_getConcernTranslation(context, 'Acne')}, ${_getConcernTranslation(context, 'Dark Spots')}',
                         ),
-                        const Divider(color: Colors.white10, height: 24, thickness: 0.8),
-                        _buildSummaryRow('AI Algorithm', 'SkinAI v1.0'),
+                        Divider(color: AppColors.borderColor, height: 24, thickness: 0.8),
+                        _buildSummaryRow(context.l10n.aiAlgorithm, 'SkinAI v1.0'),
                       ],
                     ),
                   ),
@@ -971,7 +1024,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
           flex: 2,
           child: Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               color: AppColors.textSecondary,
               fontWeight: FontWeight.w500,
@@ -1012,8 +1065,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                       borderRadius: BorderRadius.circular(24),
                     ),
                   ),
-                  child: const Text(
-                    'Back',
+                  child: Text(
+                    context.l10n.back,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -1058,7 +1111,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        _currentPage == 3 ? 'Calibrate AI' : 'Continue',
+                        _currentPage == 3 ? context.l10n.calibrationTitle : context.l10n.continueButton,
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -1089,7 +1142,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
         color: AppColors.background.withValues(alpha: 0.98),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -1138,22 +1191,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                 const SizedBox(height: 40),
 
                 // Wording matching the image
-                const Text(
-                  'Calibrating Your Profile',
+                Text(
+                  context.l10n.calibratingProfile,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: AppColors.textPrimary,
                     letterSpacing: -0.5,
                   ),
                 ),
-                const SizedBox(height: 12),
-                const Text(
-                  'Our AI is analyzing your preferences to deliver accurate skin insights.',
+                SizedBox(height: AppSpacing.sm),
+                Text(
+                  context.l10n.calibrationDesc,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: 11.sp,
                     color: AppColors.textSecondary,
                     height: 1.4,
                   ),
@@ -1167,14 +1220,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                   decoration: BoxDecoration(
                     color: AppColors.card.withValues(alpha: 0.4),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                    border: Border.all(color: AppColors.borderColor),
                   ),
                   child: Column(
                     children: [
                       _buildChecklistItem('Profile Created', _profileCreated),
-                      const SizedBox(height: 16),
+                      SizedBox(height: AppSpacing.md),
                       _buildChecklistItem('Preferences Saved', _preferencesSaved),
-                      const SizedBox(height: 16),
+                      SizedBox(height: AppSpacing.md),
                       _buildChecklistItem('AI Calibration Complete', _calibrationDone),
                     ],
                   ),
@@ -1220,10 +1273,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
                             borderRadius: BorderRadius.circular(24),
                           ),
                         ),
-                        child: const Text(
-                          'Get Started',
+                        child: Text(
+                          context.l10n.getStarted,
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: 12.sp,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),
@@ -1247,7 +1300,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
           duration: const Duration(milliseconds: 300),
           padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
-            color: isCompleted ? Colors.green.withValues(alpha: 0.15) : Colors.white10,
+            color: isCompleted ? Colors.green.withValues(alpha: 0.15) : AppColors.borderColor,
             shape: BoxShape.circle,
           ),
           child: Icon(
@@ -1262,7 +1315,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> with TickerProvider
           style: TextStyle(
             fontSize: 14,
             fontWeight: isCompleted ? FontWeight.bold : FontWeight.w500,
-            color: isCompleted ? Colors.white : AppColors.textSecondary,
+            color: isCompleted ? AppColors.textPrimary : AppColors.textSecondary,
           ),
         ),
       ],

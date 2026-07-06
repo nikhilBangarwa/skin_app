@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../services/auth_service.dart';
-import '../../theme/colors.dart';
-import '../../theme/floating_gradients.dart';
+import '../../core/services/auth_service.dart';
+import '../../core/theme/colors.dart';
+import 'package:sizer/sizer.dart';
+import '../../core/theme/spacing.dart';
+import '../../core/theme/floating_gradients.dart';
 import '../onboarding/onboarding_screen.dart';
+import '../../core/localization/app_localizations.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -68,12 +71,12 @@ class _SignupScreenState extends State<SignupScreen> {
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.error_outline, color: Colors.white),
+            Icon(Icons.error_outline, color: Theme.of(context).colorScheme.onError),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
                 message,
-                style: const TextStyle(color: Colors.white, fontSize: 14),
+                style: TextStyle(color: Theme.of(context).colorScheme.onError, fontSize: 14),
               ),
             ),
           ],
@@ -96,7 +99,7 @@ class _SignupScreenState extends State<SignupScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new, color: AppColors.textPrimary, size: 20),
           onPressed: () {
             HapticFeedback.lightImpact();
             Navigator.of(context).pop();
@@ -139,9 +142,9 @@ class _SignupScreenState extends State<SignupScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 20),
-                      const Text(
-                        'Create Profile',
+                      SizedBox(height: AppSpacing.md),
+                      Text(
+                        context.l10n.signup,
                         style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
@@ -149,12 +152,12 @@ class _SignupScreenState extends State<SignupScreen> {
                           letterSpacing: -0.5,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Join SkinAI to scan and analyze your skin.',
+                      SizedBox(height: AppSpacing.sm),
+                      Text(
+                        context.l10n.loginSubtitle,
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 15,
+                          fontSize: 11.sp,
                           color: AppColors.textSecondary,
                         ),
                       ),
@@ -170,8 +173,8 @@ class _SignupScreenState extends State<SignupScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       // Email Address
-                      const Text(
-                        'Email Address',
+                      Text(
+                        context.l10n.email,
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -179,7 +182,7 @@ class _SignupScreenState extends State<SignupScreen> {
                           letterSpacing: 0.2,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: AppSpacing.sm),
                       Container(
                         decoration: BoxDecoration(
                           color: AppColors.card.withValues(alpha: 0.8),
@@ -190,12 +193,12 @@ class _SignupScreenState extends State<SignupScreen> {
                         child: TextFormField(
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
-                          style: const TextStyle(color: Colors.white),
+                          style: TextStyle(color: AppColors.textPrimary),
                           cursorColor: AppColors.primary,
                           decoration: InputDecoration(
                             hintText: 'name@skincare.com',
-                            hintStyle: const TextStyle(color: Colors.white30, fontSize: 15),
-                            prefixIcon: const Icon(Icons.mail_outline, color: AppColors.textSecondary),
+                            hintStyle: TextStyle(color: AppColors.hintText, fontSize: 15),
+                            prefixIcon: Icon(Icons.mail_outline, color: AppColors.textSecondary),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(16),
                               borderSide: BorderSide.none,
@@ -204,21 +207,21 @@ class _SignupScreenState extends State<SignupScreen> {
                           ),
                           validator: (value) {
                             if (value == null || value.trim().isEmpty) {
-                              return 'Please enter your email';
+                              return context.l10n.emailError;
                             }
                             final emailRegExp = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
                             if (!emailRegExp.hasMatch(value.trim())) {
-                              return 'Please enter a valid email';
+                              return context.l10n.emailValidError;
                             }
                             return null;
                           },
                         ),
                       ),
-                      const SizedBox(height: 20),
+                      SizedBox(height: AppSpacing.md),
 
                       // Password
-                      const Text(
-                        'Password',
+                      Text(
+                        context.l10n.password,
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -226,7 +229,7 @@ class _SignupScreenState extends State<SignupScreen> {
                           letterSpacing: 0.2,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: AppSpacing.sm),
                       Container(
                         decoration: BoxDecoration(
                           color: AppColors.card.withValues(alpha: 0.8),
@@ -237,12 +240,12 @@ class _SignupScreenState extends State<SignupScreen> {
                         child: TextFormField(
                           controller: _passwordController,
                           obscureText: _obscurePassword,
-                          style: const TextStyle(color: Colors.white),
+                          style: TextStyle(color: AppColors.textPrimary),
                           cursorColor: AppColors.primary,
                           decoration: InputDecoration(
                             hintText: '••••••••',
-                            hintStyle: const TextStyle(color: Colors.white30, fontSize: 15),
-                            prefixIcon: const Icon(Icons.lock_outlined, color: AppColors.textSecondary),
+                            hintStyle: TextStyle(color: AppColors.hintText, fontSize: 15),
+                            prefixIcon: Icon(Icons.lock_outlined, color: AppColors.textSecondary),
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
@@ -262,20 +265,20 @@ class _SignupScreenState extends State<SignupScreen> {
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Please enter a password';
+                              return context.l10n.passwordError;
                             }
                             if (value.length < 6) {
-                              return 'Password must be at least 6 characters';
+                              return context.l10n.passwordLengthError;
                             }
                             return null;
                           },
                         ),
                       ),
-                      const SizedBox(height: 20),
+                      SizedBox(height: AppSpacing.md),
 
                       // Confirm Password
-                      const Text(
-                        'Confirm Password',
+                      Text(
+                        context.l10n.confirmPassword,
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -283,7 +286,7 @@ class _SignupScreenState extends State<SignupScreen> {
                           letterSpacing: 0.2,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: AppSpacing.sm),
                       Container(
                         decoration: BoxDecoration(
                           color: AppColors.card.withValues(alpha: 0.8),
@@ -294,12 +297,12 @@ class _SignupScreenState extends State<SignupScreen> {
                         child: TextFormField(
                           controller: _confirmPasswordController,
                           obscureText: _obscureConfirmPassword,
-                          style: const TextStyle(color: Colors.white),
+                          style: TextStyle(color: AppColors.textPrimary),
                           cursorColor: AppColors.primary,
                           decoration: InputDecoration(
                             hintText: '••••••••',
-                            hintStyle: const TextStyle(color: Colors.white30, fontSize: 15),
-                            prefixIcon: const Icon(Icons.lock_clock_outlined, color: AppColors.textSecondary),
+                            hintStyle: TextStyle(color: AppColors.hintText, fontSize: 15),
+                            prefixIcon: Icon(Icons.lock_clock_outlined, color: AppColors.textSecondary),
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _obscureConfirmPassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
@@ -319,22 +322,22 @@ class _SignupScreenState extends State<SignupScreen> {
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Please confirm your password';
+                              return context.l10n.confirmPasswordError;
                             }
                             if (value != _passwordController.text) {
-                              return 'Passwords do not match';
+                              return context.l10n.passwordsMatchError;
                             }
                             return null;
                           },
                         ),
                       ),
-                      const SizedBox(height: 36),
+                      SizedBox(height: 3.6.h),
 
                       // Sign Up Button (Gradient)
                       GestureDetector(
                         onTapDown: (_) => HapticFeedback.selectionClick(),
                         child: Container(
-                          height: 52,
+                          height: 6.h,
                           decoration: BoxDecoration(
                             gradient: AppColors.primaryGradient,
                             borderRadius: BorderRadius.circular(24),
@@ -356,20 +359,20 @@ class _SignupScreenState extends State<SignupScreen> {
                               ),
                             ),
                             child: _isLoading
-                                ? const SizedBox(
-                                    height: 20,
-                                    width: 20,
+                                ? SizedBox(
+                                    height: 2.5.h,
+                                    width: 2.5.h,
                                     child: CircularProgressIndicator(
-                                      strokeWidth: 2.0,
-                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                      strokeWidth: 1.5,
+                                      valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).colorScheme.onPrimary),
                                     ),
                                   )
-                                : const Text(
-                                    'Create Profile',
+                                : Text(
+                                    context.l10n.signup,
                                     style: TextStyle(
-                                      fontSize: 16,
+                                      fontSize: 12.sp,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.white,
+                                      color: Theme.of(context).colorScheme.onPrimary,
                                     ),
                                   ),
                           ),
@@ -384,8 +387,8 @@ class _SignupScreenState extends State<SignupScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
-                      'Already have an account? ',
+                    Text(
+                      context.l10n.haveAccountText,
                       style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
                     ),
                     GestureDetector(
@@ -393,8 +396,8 @@ class _SignupScreenState extends State<SignupScreen> {
                         HapticFeedback.lightImpact();
                         Navigator.of(context).pop();
                       },
-                      child: const Text(
-                        'Login',
+                      child: Text(
+                        context.l10n.login,
                         style: TextStyle(
                           color: AppColors.primary,
                           fontWeight: FontWeight.bold,
@@ -404,20 +407,20 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 40),
+                SizedBox(height: 4.h),
                 
-                const Center(
+                Center(
                   child: Text(
-                    'Powered by AI Skin Intelligence',
+                    context.l10n.poweredBy,
                     style: TextStyle(
-                      fontSize: 11,
+                      fontSize: 9.sp,
                       fontWeight: FontWeight.w500,
-                      color: Colors.white24,
+                      color: AppColors.textSecondary.withValues(alpha: 0.4),
                       letterSpacing: 1.0,
                     ),
                   ),
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: AppSpacing.md),
               ],
             ),
           ),

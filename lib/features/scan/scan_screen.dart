@@ -3,9 +3,12 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:camera/camera.dart';
+import '../../core/localization/app_localizations.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../theme/colors.dart';
-import '../../theme/floating_gradients.dart';
+import '../../core/theme/colors.dart';
+import 'package:sizer/sizer.dart';
+import '../../core/theme/spacing.dart';
+import '../../core/theme/floating_gradients.dart';
 import 'processing_screen.dart';
 
 class ScanScreen extends StatefulWidget {
@@ -245,8 +248,8 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
                         Navigator.of(context).pop();
                       },
                     ),
-                    const Text(
-                      'Scan Your Face',
+                    Text(
+                      context.l10n.scanYourFace,
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -265,8 +268,8 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
                   ],
                 ),
                 const SizedBox(height: 8),
-                const Text(
-                  'Get a clear analysis of your skin in just a few seconds.',
+                Text(
+                  context.l10n.scanSubtitle,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
@@ -301,7 +304,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
                               : (_isCameraSwitching
                                   ? Container(
                                       color: Colors.black54,
-                                      child: const Center(
+                                      child: Center(
                                         child: CircularProgressIndicator(color: AppColors.primary),
                                       ),
                                     )
@@ -348,7 +351,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
                                       child: Container(
                                         width: 24,
                                         height: 24,
-                                        decoration: const BoxDecoration(
+                                        decoration: BoxDecoration(
                                           border: Border(
                                             top: BorderSide(color: AppColors.primary, width: 3.5),
                                             left: BorderSide(color: AppColors.primary, width: 3.5),
@@ -362,7 +365,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
                                       child: Container(
                                         width: 24,
                                         height: 24,
-                                        decoration: const BoxDecoration(
+                                        decoration: BoxDecoration(
                                           border: Border(
                                             top: BorderSide(color: AppColors.primary, width: 3.5),
                                             right: BorderSide(color: AppColors.primary, width: 3.5),
@@ -376,7 +379,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
                                       child: Container(
                                         width: 24,
                                         height: 24,
-                                        decoration: const BoxDecoration(
+                                        decoration: BoxDecoration(
                                           border: Border(
                                             bottom: BorderSide(color: AppColors.primary, width: 3.5),
                                             left: BorderSide(color: AppColors.primary, width: 3.5),
@@ -390,7 +393,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
                                       child: Container(
                                         width: 24,
                                         height: 24,
-                                        decoration: const BoxDecoration(
+                                        decoration: BoxDecoration(
                                           border: Border(
                                             bottom: BorderSide(color: AppColors.primary, width: 3.5),
                                             right: BorderSide(color: AppColors.primary, width: 3.5),
@@ -430,10 +433,10 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
                               ),
                               child: Text(
                                 _selectedImagePath != null
-                                    ? 'Image Selected. Tap Capture to Analyze.'
+                                    ? context.l10n.imageSelected
                                     : (_isCameraInitialized
-                                        ? 'Position your face in the frame'
-                                        : 'Camera Offline. Import from Gallery.'),
+                                        ? context.l10n.positionFace
+                                        : context.l10n.cameraOffline),
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 12,
@@ -450,8 +453,8 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
                 const SizedBox(height: 24),
 
                 // Tips Section
-                const Text(
-                  'Tips for best results',
+                Text(
+                  context.l10n.tipsTitle,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 14,
@@ -464,16 +467,16 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildTipCard(Icons.wb_sunny_outlined, 'Good Lighting'),
-                    _buildTipCard(Icons.face_retouching_natural, 'Face Centered'),
+                    _buildTipCard(Icons.wb_sunny_outlined, context.l10n.tipLighting),
+                    _buildTipCard(Icons.face_retouching_natural, context.l10n.tipCentered),
                   ],
                 ),
                 const SizedBox(height: 10),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildTipCard(Icons.auto_awesome_outlined, 'No Filters'),
-                    _buildTipCard(Icons.remove_red_eye_outlined, 'Remove Glasses'),
+                    _buildTipCard(Icons.auto_awesome_outlined, context.l10n.tipNoFilters),
+                    _buildTipCard(Icons.remove_red_eye_outlined, context.l10n.tipNoGlasses),
                   ],
                 ),
                 const Spacer(),
@@ -484,14 +487,14 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      _buildBottomAction(Icons.image_outlined, 'Gallery', _selectFromGallery),
+                      _buildBottomAction(Icons.image_outlined, context.l10n.gallery, _selectFromGallery),
 
                       // Central Capture / Analyze Action Button
                       GestureDetector(
                         onTap: _capturePhoto,
                         child: Container(
-                          width: 80,
-                          height: 80,
+                          width: 10.h,
+                          height: 10.h,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(color: Colors.white, width: 4.0),
@@ -499,7 +502,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
                           child: Padding(
                             padding: const EdgeInsets.all(4.0),
                             child: Container(
-                              decoration: const BoxDecoration(
+                              decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 gradient: AppColors.primaryGradient,
                               ),
@@ -516,7 +519,7 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
                       // Switching lens directions
                       _buildBottomAction(
                         Icons.cached,
-                        'Flip',
+                        context.l10n.flip,
                         _selectedImagePath == null ? _switchCamera : () {},
                       ),
                     ],
@@ -549,12 +552,12 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
             ),
             child: Icon(icon, size: 16, color: AppColors.primary),
           ),
-          const SizedBox(width: 10),
+          SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(
-                fontSize: 12,
+              style: TextStyle(
+                fontSize: 9.sp,
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
               ),
@@ -571,24 +574,24 @@ class _ScanScreenState extends State<ScanScreen> with TickerProviderStateMixin {
     return GestureDetector(
       onTap: onTap,
       child: SizedBox(
-        width: 60,
+        width: 15.w,
         child: Column(
           children: [
             Container(
-              height: 48,
-              width: 48,
+              height: 6.h,
+              width: 6.h,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: Colors.white.withValues(alpha: 0.08),
                 border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
               ),
-              child: Icon(icon, color: Colors.white, size: 22),
+              child: Icon(icon, color: Colors.white, size: 16.sp),
             ),
             const SizedBox(height: 6),
             Text(
               label,
-              style: const TextStyle(
-                fontSize: 11,
+              style: TextStyle(
+                fontSize: 8.sp,
                 color: AppColors.textSecondary,
                 fontWeight: FontWeight.w500,
               ),
